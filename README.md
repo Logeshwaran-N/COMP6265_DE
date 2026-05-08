@@ -340,3 +340,4 @@ ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 logesh@<vm-ip>
 ```
 
 Open http://localhost:5173 in Windows and check http://localhost:8000/api/health.
+#Logesh policy check as owner of repo
