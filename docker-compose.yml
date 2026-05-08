@@ -1,0 +1,27 @@
+services:
+  mock-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.mockapi
+    ports:
+      - "8001:8001"
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    environment:
+      - MOCK_API_BASE_URL=http://mock-api:8001
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mock-api
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
