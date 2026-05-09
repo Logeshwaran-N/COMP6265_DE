@@ -26,12 +26,43 @@
       table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.03);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border)}
       .trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.meta{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.45}.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:14px;padding:12px}.metric b{display:block;font-size:18px;margin-top:4px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
       details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}
+
+      .auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px}
+      .auth-box{width:min(560px,100%);border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(0,0,0,.22));border-radius:24px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.38)}
+      .auth-logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.28);font-weight:800;font-size:20px;margin-bottom:14px}
+      .auth-title{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:0}
+      .auth-text{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}
+      .auth-form{display:grid;gap:10px;margin-top:16px}.auth-form label{margin:0 0 -4px}.auth-form input{font-size:14px}.auth-actions{display:grid;gap:10px;margin-top:14px}.google-btn{width:100%;justify-content:center;font-weight:700;background:rgba(255,255,255,.92);color:#111827;border-color:rgba(255,255,255,.75)}.google-btn:hover{background:#fff}.demo-btn,.cognito-btn{width:100%;justify-content:center;font-weight:700}.cognito-btn{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.34)}.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:12px;margin:16px 0 4px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--border);flex:1}.auth-small{color:var(--muted2);font-size:12px;line-height:1.45;margin-top:12px}.auth-msg{margin-top:12px}.user-pill{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       @media(max-width:1050px){.row{grid-template-columns:1fr}.grid3,.trust-cards,.mini-grid{grid-template-columns:1fr}.top{flex-direction:column}.wrap{padding:14px}}
     </style>
-    <script type="module" crossorigin src="/assets/index-C4nsJUZN.js"></script>
+    <script type="module" crossorigin src="/assets/index-Cp9D9a9I.js"></script>
   </head>
   <body>
-    <div class="wrap">
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-box">
+        <div class="auth-logo">DE</div>
+        <h1 class="auth-title">Sign in to Data Economy Platform</h1>
+        <div class="auth-text">Use the local email/password login for VM testing. In AWS, use Cognito Hosted UI for real email/password sign-in or Google sign-in.</div>
+        <form id="localLoginForm" class="auth-form">
+          <label for="emailInput">Email</label>
+          <input id="emailInput" type="email" autocomplete="username" value="demo@comp6265.local" />
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" autocomplete="current-password" value="demo123" />
+          <button id="emailLoginBtn" class="demo-btn" type="submit">Login with email and password</button>
+        </form>
+        <div class="auth-small">Local demo users: <b>demo@comp6265.local / demo123</b> and <b>admin@comp6265.local / admin123</b>.</div>
+        <div class="auth-divider">AWS Cognito options</div>
+        <div class="auth-actions">
+          <button id="cognitoLoginBtn" class="cognito-btn" type="button">Sign in / sign up with Cognito email</button>
+          <button id="googleLoginBtn" class="google-btn" type="button">Continue with Google</button>
+          <button id="demoLoginBtn" class="demo-btn" type="button">Continue without password</button>
+        </div>
+        <div id="authMessage" class="auth-msg"></div>
+        <div class="auth-small">For AWS Amplify: enable Cognito username/email sign-in and Google provider, then set the VITE_COGNITO_* environment variables before building.</div>
+      </div>
+    </section>
+
+    <div id="appShell" class="wrap" style="display:none">
       <div class="top">
         <div>
           <h1>Trust-Aware Federated Data Economy Platform</h1>
@@ -39,6 +70,8 @@
           <div class="backend-note" id="backendNote"></div>
         </div>
         <div class="split">
+          <span id="userBadge" class="user-pill" title="Signed-in user">Local demo</span>
+          <button id="logoutBtn" type="button">Logout</button>
           <button id="refreshBtn" type="button">Check backend</button>
           <button id="trustBtn" type="button">Load trust</button>
         </div>

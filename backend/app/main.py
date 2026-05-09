@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .audit import read_audit, write_audit
+from .auth import auth_required, get_current_user
 from .catalogue import get_catalogue, list_sources
 from .errors import InvalidQueryError, QueryError
 from .engine.executor import execute_plan
@@ -32,8 +33,13 @@ def health():
     return {"ok": True, "service": "data-economy-backend", "version": "2.0.0"}
 
 
+@app.get("/api/auth/me")
+def auth_me(user=Depends(get_current_user)):
+    return {"ok": True, "auth_required": auth_required(), "user": user}
+
+
 @app.get("/api/catalogue")
-def catalogue():
+def catalogue(user=Depends(get_current_user)):
     data = get_catalogue()
     from .engine.trust import trust_cache
 
@@ -45,7 +51,7 @@ def catalogue():
 
 
 @app.get("/api/sources")
-def sources():
+def sources(user=Depends(get_current_user)):
     from .engine.trust import trust_cache
 
     trust = trust_cache.get()
@@ -56,7 +62,7 @@ def sources():
 
 
 @app.get("/api/trust")
-def trust():
+def trust(user=Depends(get_current_user)):
     from .engine.trust import trust_cache
 
     return {
@@ -68,12 +74,12 @@ def trust():
 
 
 @app.get("/api/audit")
-def audit(limit: int = 50):
+def audit(limit: int = 50, user=Depends(get_current_user)):
     return read_audit(limit)
 
 
 @app.get("/api/algorithm")
-def algorithm():
+def algorithm(user=Depends(get_current_user)):
     return {
         "name": "Policy-aware, trust-aware, cost-aware federated optimiser",
         "pipeline": [
@@ -107,7 +113,7 @@ def algorithm():
 
 
 @app.post("/api/query", response_model=QueryResponse)
-def query(req: QueryRequest):
+def query(req: QueryRequest, user=Depends(get_current_user)):
     audit_base = {"raw_query": req.query, "role": req.role, "purpose": req.purpose, "strategy": req.strategy, "verification": req.verification}
     try:
         parsed = parse_query(req.query)

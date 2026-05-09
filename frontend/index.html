@@ -26,11 +26,42 @@
       table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.03);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border)}
       .trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.meta{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.45}.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:14px;padding:12px}.metric b{display:block;font-size:18px;margin-top:4px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
       details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}
+
+      .auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px}
+      .auth-box{width:min(560px,100%);border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(0,0,0,.22));border-radius:24px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.38)}
+      .auth-logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.28);font-weight:800;font-size:20px;margin-bottom:14px}
+      .auth-title{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:0}
+      .auth-text{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}
+      .auth-form{display:grid;gap:10px;margin-top:16px}.auth-form label{margin:0 0 -4px}.auth-form input{font-size:14px}.auth-actions{display:grid;gap:10px;margin-top:14px}.google-btn{width:100%;justify-content:center;font-weight:700;background:rgba(255,255,255,.92);color:#111827;border-color:rgba(255,255,255,.75)}.google-btn:hover{background:#fff}.demo-btn,.cognito-btn{width:100%;justify-content:center;font-weight:700}.cognito-btn{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.34)}.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:12px;margin:16px 0 4px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--border);flex:1}.auth-small{color:var(--muted2);font-size:12px;line-height:1.45;margin-top:12px}.auth-msg{margin-top:12px}.user-pill{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       @media(max-width:1050px){.row{grid-template-columns:1fr}.grid3,.trust-cards,.mini-grid{grid-template-columns:1fr}.top{flex-direction:column}.wrap{padding:14px}}
     </style>
   </head>
   <body>
-    <div class="wrap">
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-box">
+        <div class="auth-logo">DE</div>
+        <h1 class="auth-title">Sign in to Data Economy Platform</h1>
+        <div class="auth-text">Use the local email/password login for VM testing. In AWS, use Cognito Hosted UI for real email/password sign-in or Google sign-in.</div>
+        <form id="localLoginForm" class="auth-form">
+          <label for="emailInput">Email</label>
+          <input id="emailInput" type="email" autocomplete="username" value="demo@comp6265.local" />
+          <label for="passwordInput">Password</label>
+          <input id="passwordInput" type="password" autocomplete="current-password" value="demo123" />
+          <button id="emailLoginBtn" class="demo-btn" type="submit">Login with email and password</button>
+        </form>
+        <div class="auth-small">Local demo users: <b>demo@comp6265.local / demo123</b> and <b>admin@comp6265.local / admin123</b>.</div>
+        <div class="auth-divider">AWS Cognito options</div>
+        <div class="auth-actions">
+          <button id="cognitoLoginBtn" class="cognito-btn" type="button">Sign in / sign up with Cognito email</button>
+          <button id="googleLoginBtn" class="google-btn" type="button">Continue with Google</button>
+          <button id="demoLoginBtn" class="demo-btn" type="button">Continue without password</button>
+        </div>
+        <div id="authMessage" class="auth-msg"></div>
+        <div class="auth-small">For AWS Amplify: enable Cognito username/email sign-in and Google provider, then set the VITE_COGNITO_* environment variables before building.</div>
+      </div>
+    </section>
+
+    <div id="appShell" class="wrap" style="display:none">
       <div class="top">
         <div>
           <h1>Trust-Aware Federated Data Economy Platform</h1>
@@ -38,6 +69,8 @@
           <div class="backend-note" id="backendNote"></div>
         </div>
         <div class="split">
+          <span id="userBadge" class="user-pill" title="Signed-in user">Local demo</span>
+          <button id="logoutBtn" type="button">Logout</button>
           <button id="refreshBtn" type="button">Check backend</button>
           <button id="trustBtn" type="button">Load trust</button>
         </div>
@@ -88,6 +121,180 @@
 
       document.getElementById("backendNote").textContent = `Backend: ${backendBase}`;
 
+      const AUTH_ENABLED = String(import.meta.env.VITE_AUTH_ENABLED ?? "true").toLowerCase() !== "false";
+      const AUTH_REQUIRED = String(import.meta.env.VITE_AUTH_REQUIRED || "false").toLowerCase() === "true";
+      const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || "").trim();
+      const COGNITO_CLIENT_ID = (import.meta.env.VITE_COGNITO_CLIENT_ID || "").trim();
+      const COGNITO_REDIRECT_URI = (import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}${window.location.pathname}`).trim();
+      const COGNITO_LOGOUT_URI = (import.meta.env.VITE_COGNITO_LOGOUT_URI || `${window.location.origin}${window.location.pathname}`).trim();
+      const COGNITO_PROVIDER = (import.meta.env.VITE_COGNITO_PROVIDER || "Google").trim();
+      const AUTH_SESSION_KEY = "comp6265_data_economy_auth";
+      const LOCAL_USERS = [
+        { email: "demo@comp6265.local", password: "demo123", name: "Demo User", role: "researcher" },
+        { email: "admin@comp6265.local", password: "admin123", name: "Admin Demo User", role: "admin" }
+      ];
+
+      function normaliseCognitoDomain(domain){
+        if(!domain) return "";
+        return domain.startsWith("http") ? domain.replace(/\/$/, "") : `https://${domain.replace(/\/$/, "")}`;
+      }
+
+      function decodeJwtPayload(token){
+        try{
+          const payload = token.split(".")[1];
+          const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+          return JSON.parse(decodeURIComponent(json.split("").map(c => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join("")));
+        }catch(_){
+          return {};
+        }
+      }
+
+      function readSession(){
+        try{
+          const raw = localStorage.getItem(AUTH_SESSION_KEY);
+          if(!raw) return null;
+          const session = JSON.parse(raw);
+          if(session.expiresAt && Date.now() > session.expiresAt){
+            localStorage.removeItem(AUTH_SESSION_KEY);
+            return null;
+          }
+          return session;
+        }catch(_){
+          localStorage.removeItem(AUTH_SESSION_KEY);
+          return null;
+        }
+      }
+
+      function saveSession(session){
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+      }
+
+      function parseAuthRedirect(){
+        if(!window.location.hash.includes("access_token") && !window.location.hash.includes("id_token")) return null;
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const accessToken = params.get("access_token");
+        const idToken = params.get("id_token");
+        const expiresIn = Number(params.get("expires_in") || 3600);
+        const claims = decodeJwtPayload(idToken || accessToken || "");
+        const session = {
+          provider: "cognito",
+          accessToken,
+          idToken,
+          email: claims.email || claims["cognito:username"] || "Cognito user",
+          name: claims.name || claims.given_name || claims.email || "Cognito user",
+          expiresAt: Date.now() + Math.max(60, expiresIn - 30) * 1000
+        };
+        saveSession(session);
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        return session;
+      }
+
+      function authHeaders(){
+        const session = readSession();
+        const token = session?.accessToken || session?.idToken;
+        return token ? { Authorization: `Bearer ${token}` } : {};
+      }
+
+      function authConfigured(){
+        return Boolean(normaliseCognitoDomain(COGNITO_DOMAIN) && COGNITO_CLIENT_ID);
+      }
+
+      function setAuthMessage(message, kind="status"){
+        const root = document.getElementById("authMessage");
+        root.innerHTML = "";
+        if(message) root.appendChild(el("div", {class:`status ${kind}`}, [message]));
+      }
+
+      function buildCognitoAuthorizeUrl(extraParams={}){
+        const domain = normaliseCognitoDomain(COGNITO_DOMAIN);
+        if(!domain || !COGNITO_CLIENT_ID){
+          setAuthMessage("Cognito is not configured yet. For local testing, use the hardcoded local email/password login. For AWS, set VITE_COGNITO_DOMAIN and VITE_COGNITO_CLIENT_ID.", "bad");
+          return "";
+        }
+        const params = new URLSearchParams({
+          client_id: COGNITO_CLIENT_ID,
+          response_type: "token",
+          scope: "openid email profile",
+          redirect_uri: COGNITO_REDIRECT_URI,
+          ...extraParams
+        });
+        return `${domain}/oauth2/authorize?${params.toString()}`;
+      }
+
+      function startCognitoLogin(){
+        const url = buildCognitoAuthorizeUrl();
+        if(url) window.location.href = url;
+      }
+
+      function startGoogleLogin(){
+        const url = buildCognitoAuthorizeUrl({ identity_provider: COGNITO_PROVIDER });
+        if(url) window.location.href = url;
+      }
+
+      function localEmailLogin(event){
+        if(event) event.preventDefault();
+        const email = (document.getElementById("emailInput")?.value || "").trim().toLowerCase();
+        const password = document.getElementById("passwordInput")?.value || "";
+        const user = LOCAL_USERS.find(u => u.email.toLowerCase() === email && u.password === password);
+        if(!user){
+          setAuthMessage("Invalid local email/password. Try demo@comp6265.local / demo123 or admin@comp6265.local / admin123.", "bad");
+          return;
+        }
+        saveSession({provider:"local-password", name:user.name, email:user.email, role:user.role, expiresAt: Date.now() + 8*60*60*1000});
+        renderAuthState();
+        checkBackend();
+      }
+
+      function continueDemo(){
+        saveSession({provider:"local-demo", name:"Local demo user", email:"local-demo@comp6265.local", expiresAt: Date.now() + 8*60*60*1000});
+        renderAuthState();
+        checkBackend();
+      }
+
+      function logout(){
+        const session = readSession();
+        localStorage.removeItem(AUTH_SESSION_KEY);
+        const domain = normaliseCognitoDomain(COGNITO_DOMAIN);
+        if(session?.provider?.startsWith("cognito") && domain && COGNITO_CLIENT_ID){
+          const params = new URLSearchParams({client_id: COGNITO_CLIENT_ID, logout_uri: COGNITO_LOGOUT_URI});
+          window.location.href = `${domain}/logout?${params.toString()}`;
+          return;
+        }
+        renderAuthState();
+      }
+
+      function renderAuthState(){
+        const session = parseAuthRedirect() || readSession();
+        const authScreen = document.getElementById("authScreen");
+        const appShell = document.getElementById("appShell");
+        const userBadge = document.getElementById("userBadge");
+        const googleBtn = document.getElementById("googleLoginBtn");
+        const cognitoBtn = document.getElementById("cognitoLoginBtn");
+        const demoBtn = document.getElementById("demoLoginBtn");
+        const localForm = document.getElementById("localLoginForm");
+
+        if(googleBtn) googleBtn.disabled = AUTH_ENABLED && !authConfigured() && AUTH_REQUIRED;
+        if(cognitoBtn) cognitoBtn.disabled = AUTH_ENABLED && !authConfigured() && AUTH_REQUIRED;
+        if(demoBtn) demoBtn.style.display = AUTH_REQUIRED ? "none" : "inline-flex";
+        if(localForm) localForm.style.display = AUTH_REQUIRED ? "none" : "grid";
+
+        if(!AUTH_ENABLED || session){
+          authScreen.style.display = "none";
+          appShell.style.display = "block";
+          if(userBadge){
+            const label = session ? `${session.name || session.email || "Signed in"}` : "Auth disabled";
+            userBadge.textContent = label;
+            userBadge.title = session?.email || label;
+          }
+          return true;
+        }
+
+        authScreen.style.display = "grid";
+        appShell.style.display = "none";
+        setAuthMessage(authConfigured() ? "Cognito is ready. Use Cognito email/password or Google for AWS login. Local email/password is only for VM testing." : "Cognito details are not configured in this build. Use the local hardcoded email/password login now, then set Amplify environment variables before production deployment.", authConfigured() ? "ok" : "");
+        return false;
+      }
+
       const EXAMPLES = [
         { title: "FX verified conflict", query: "SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION", role:"analyst", purpose:"research", strategy:"trust_first", verify:true },
         { title: "Apple prices verified", query: "SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION", role:"researcher", purpose:"research", strategy:"balanced", verify:true },
@@ -126,8 +333,8 @@
         let res;
         try{
           res = await fetch(`${backendBase}${path}`, {
-            headers: { "Content-Type": "application/json", ...(options.headers||{}) },
-            ...options
+            ...options,
+            headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers||{}) }
           });
         }catch(err){
           throw new Error(`Cannot reach backend at ${backendBase}. Check docker compose ports or set VITE_API_BASE_URL. ${err.message}`);
@@ -282,7 +489,12 @@
       $("runBtn").addEventListener("click", runQuery);
       $("trustBtn").addEventListener("click", loadTrust);
       $("refreshBtn").addEventListener("click", checkBackend);
-      checkBackend();
+      $("logoutBtn").addEventListener("click", logout);
+      $("localLoginForm").addEventListener("submit", localEmailLogin);
+      $("cognitoLoginBtn").addEventListener("click", startCognitoLogin);
+      $("googleLoginBtn").addEventListener("click", startGoogleLogin);
+      $("demoLoginBtn").addEventListener("click", continueDemo);
+      if(renderAuthState()) checkBackend();
     </script>
   </body>
 </html>
