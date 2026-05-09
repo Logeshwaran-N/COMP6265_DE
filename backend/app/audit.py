@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 import uuid
-from pathlib import Path
 from typing import Any, Dict, List
 from .catalogue import utc_now_iso
+from .config import settings
 
-AUDIT_PATH = Path(__file__).resolve().parents[1] / "data" / "audit_log.jsonl"
+AUDIT_PATH = settings.audit_log_path
 
 
 def write_audit(event: Dict[str, Any]) -> str:

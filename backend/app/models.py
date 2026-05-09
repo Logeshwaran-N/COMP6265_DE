@@ -1,17 +1,49 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+class RoleEnum(str, Enum):
+    guest = "guest"
+    analyst = "analyst"
+    researcher = "researcher"
+    data_steward = "data_steward"
+    admin = "admin"
+
+
+class PurposeEnum(str, Enum):
+    research = "research"
+    commercial = "commercial"
+    planning = "planning"
+    internal_audit = "internal_audit"
+
+
+class StrategyEnum(str, Enum):
+    balanced = "balanced"
+    cheapest = "cheapest"
+    trust_first = "trust_first"
+    privacy_first = "privacy_first"
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., description="SQL-like query over a virtual dataset")
-    role: str = Field("researcher", description="guest, analyst, researcher, data_steward, admin")
-    purpose: str = Field("research", description="research, commercial, planning, internal_audit")
-    strategy: str = Field("balanced", description="balanced, cheapest, trust_first, privacy_first")
+    query: str = Field(..., min_length=5, max_length=1000, description="SQL-like query over a virtual dataset")
+    role: RoleEnum = Field(RoleEnum.researcher, description="User role")
+    purpose: PurposeEnum = Field(PurposeEnum.research, description="Query purpose")
+    strategy: StrategyEnum = Field(StrategyEnum.balanced, description="Optimisation strategy")
     verification: bool = Field(False, description="Force multi-source verification")
     show_all_conflicts: bool = Field(True, description="Return conflict alternatives for demo transparency")
+
+    @field_validator("query")
+    @classmethod
+    def query_must_be_select(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("Query must be a non-empty string")
+        if not v.strip().upper().startswith("SELECT"):
+            raise ValueError("Only SELECT queries are supported")
+        return v
 
 
 class QueryResponse(BaseModel):

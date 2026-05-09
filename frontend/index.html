@@ -4,9 +4,285 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trust-Aware Data Economy Platform</title>
+    <style>
+      :root{
+        --bg:#0b1220;--panel:rgba(255,255,255,.06);--panel-strong:rgba(0,0,0,.20);--border:rgba(255,255,255,.10);
+        --text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.52);
+        --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--accent:#60a5fa;--purple:#a78bfa;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1100px 550px at 20% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(900px 520px at 80% 10%,rgba(34,197,94,.18),transparent 55%),var(--bg);color:var(--text)}
+      .wrap{max-width:1180px;margin:0 auto;padding:22px}
+      .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
+      h1{margin:0;font-size:24px;letter-spacing:-.02em}.sub{color:var(--muted);margin-top:6px;font-size:13px;line-height:1.5}.backend-note{color:var(--muted2);font-size:12px;margin-top:6px}
+      .row{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}.card{border:1px solid var(--border);background:var(--panel-strong);border-radius:16px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+      .card h2{margin:0 0 8px;font-size:15px}.card h3{margin:14px 0 8px;font-size:13px;color:var(--muted)}
+      label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}textarea,select,input{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);padding:10px 12px;outline:none}
+      option{background:#101827;color:var(--text)}textarea{min-height:130px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45}
+      .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}.check{display:flex;align-items:center;gap:10px;color:var(--muted);margin-top:10px}.check input{width:auto}
+      button{cursor:pointer;border-radius:12px;padding:10px 12px;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);display:inline-flex;align-items:center;gap:8px}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.65;cursor:not-allowed}.split{display:flex;gap:10px;flex-wrap:wrap}
+      .status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);margin-bottom:10px;line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+      pre{margin:0;max-height:260px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:12px}.pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}
+      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.03);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border)}
+      .trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.meta{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.45}.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:14px;padding:12px}.metric b{display:block;font-size:18px;margin-top:4px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
+      details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}
+      @media(max-width:1050px){.row{grid-template-columns:1fr}.grid3,.trust-cards,.mini-grid{grid-template-columns:1fr}.top{flex-direction:column}.wrap{padding:14px}}
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <h1>Trust-Aware Federated Data Economy Platform</h1>
+          <div class="sub">Query CSV, SQLite and API sources with governance policy checks, trust-based conflict resolution, pricing, and audit logging.</div>
+          <div class="backend-note" id="backendNote"></div>
+        </div>
+        <div class="split">
+          <button id="refreshBtn" type="button">Check backend</button>
+          <button id="trustBtn" type="button">Load trust</button>
+        </div>
+      </div>
+
+      <div class="mini-grid" id="metrics"></div>
+
+      <div class="row" style="margin-top:14px">
+        <div class="card">
+          <h2>Query Builder</h2>
+          <div class="meta">Choose a scenario, change role/purpose/strategy, then run the federated query.</div>
+          <label>Example queries</label>
+          <select id="exampleSelect"></select>
+          <label>SQL-like query</label>
+          <textarea id="queryInput"></textarea>
+          <div class="grid3">
+            <div><label>Role</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
+            <div><label>Purpose</label><select id="purposeSelect"><option selected>research</option><option>commercial</option><option>planning</option><option>internal_audit</option></select></div>
+            <div><label>Strategy</label><select id="strategySelect"><option selected>balanced</option><option>cheapest</option><option>trust_first</option><option>privacy_first</option></select></div>
+          </div>
+          <label class="check"><input id="verifyChk" type="checkbox" /> Force verification across sources</label>
+          <label class="check"><input id="conflictsChk" type="checkbox" checked /> Show all conflicts for demo</label>
+          <div style="margin-top:12px"><button id="runBtn" type="button">Run query</button></div>
+        </div>
+
+        <div class="card">
+          <h2>Result</h2>
+          <div id="result"><div class="status">Run a query to see policy decision, selected source plan, price, conflicts and result rows.</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <h2>Trust visualization</h2>
+        <div class="meta">Computed trust combines base trust, authority, provider PageRank reputation and freshness.</div>
+        <div id="trust"></div>
+      </div>
+      <div class="footer">Docker local test: frontend 5173, backend 8000, mock API 8001. For Amplify, deploy the frontend folder and set VITE_API_BASE_URL to your backend URL.</div>
+    </div>
+
+    <script type="module">
+      const configuredBase = import.meta.env.VITE_API_BASE_URL || "";
+      const browserHost = window.location.hostname;
+      const browserProtocol = window.location.protocol;
+      const localHosts = ["localhost", "127.0.0.1", "0.0.0.0"];
+      const backendBase = configuredBase && !(configuredBase.includes("localhost") && !localHosts.includes(browserHost))
+        ? configuredBase.replace(/\/$/, "")
+        : `${browserProtocol}//${browserHost}:8000`;
+
+      document.getElementById("backendNote").textContent = `Backend: ${backendBase}`;
+
+      const EXAMPLES = [
+        { title: "FX verified conflict", query: "SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION", role:"analyst", purpose:"research", strategy:"trust_first", verify:true },
+        { title: "Apple prices verified", query: "SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION", role:"researcher", purpose:"research", strategy:"balanced", verify:true },
+        { title: "Range filter", query: "SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5", role:"researcher", purpose:"planning", strategy:"cheapest", verify:false },
+        { title: "PII policy deny", query: "SELECT customer_email FROM orders WHERE order_id = 'O-1002'", role:"researcher", purpose:"research", strategy:"privacy_first", verify:false },
+        { title: "Join demo", query: "SELECT name, price_gbp, supplier_name FROM fruits JOIN suppliers ON supplier_id = supplier_id WHERE name = 'apple'", role:"researcher", purpose:"research", strategy:"balanced", verify:false }
+      ];
+
+      const $ = (id) => document.getElementById(id);
+      const exampleSelect = $("exampleSelect");
+      const queryInput = $("queryInput");
+      const roleSelect = $("roleSelect");
+      const purposeSelect = $("purposeSelect");
+      const strategySelect = $("strategySelect");
+      const verifyChk = $("verifyChk");
+
+      EXAMPLES.forEach((e, i) => {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = e.title;
+        exampleSelect.appendChild(opt);
+      });
+
+      function loadExample(i){
+        const ex = EXAMPLES[i];
+        queryInput.value = ex.query;
+        roleSelect.value = ex.role;
+        purposeSelect.value = ex.purpose;
+        strategySelect.value = ex.strategy;
+        verifyChk.checked = ex.verify;
+      }
+      exampleSelect.addEventListener("change", () => loadExample(Number(exampleSelect.value)));
+      loadExample(0);
+
+      async function api(path, options={}){
+        let res;
+        try{
+          res = await fetch(`${backendBase}${path}`, {
+            headers: { "Content-Type": "application/json", ...(options.headers||{}) },
+            ...options
+          });
+        }catch(err){
+          throw new Error(`Cannot reach backend at ${backendBase}. Check docker compose ports or set VITE_API_BASE_URL. ${err.message}`);
+        }
+        const contentType = res.headers.get("content-type") || "";
+        const body = contentType.includes("application/json") ? await res.json() : await res.text();
+        if(!res.ok){
+          const msg = typeof body === "string" ? body : (body.message || JSON.stringify(body));
+          throw new Error(`HTTP ${res.status}: ${msg}`);
+        }
+        return body;
+      }
+
+      function el(tag, attrs={}, children=[]){
+        const n = document.createElement(tag);
+        Object.entries(attrs).forEach(([k,v])=>{
+          if(k === "class") n.className = v;
+          else if(k === "style") n.setAttribute("style", v);
+          else n.setAttribute(k, v);
+        });
+        children.forEach(c => n.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+        return n;
+      }
+
+      function table(rows){
+        if(!Array.isArray(rows) || !rows.length) return el("div", {class:"status"}, ["No rows returned."]);
+        const cols = Object.keys(rows[0]);
+        return el("div", {class:"table-wrap", style:"margin-top:10px"}, [
+          el("table", {}, [
+            el("thead", {}, [el("tr", {}, cols.map(c=>el("th", {}, [c])))]),
+            el("tbody", {}, rows.map(row => el("tr", {}, cols.map(c=>el("td", {}, [String(row[c] ?? "")])))))
+          ])
+        ]);
+      }
+
+      function renderMetrics(data){
+        const root = $("metrics");
+        if(!data){ root.innerHTML = ""; return; }
+        const catalogueCount = Object.keys(data.catalogue || {}).length;
+        const sourceCount = Array.isArray(data.sources) ? data.sources.length : 0;
+        const auditCount = Array.isArray(data.audit) ? data.audit.length : 0;
+        const trustSources = Object.keys((data.trust || {}).sources || {}).length;
+        root.innerHTML = "";
+        [["Datasets", catalogueCount], ["Sources", sourceCount], ["Trust scores", trustSources], ["Audit events", auditCount]].forEach(([label, value]) => {
+          root.appendChild(el("div", {class:"metric"}, [el("span", {}, [label]), el("b", {}, [String(value)])]));
+        });
+      }
+
+      function renderResult(r){
+        const root = $("result");
+        root.innerHTML = "";
+        root.appendChild(el("div", { class: `status ${r.ok ? "ok":"bad"}`}, [`${r.ok ? "Approved" : "Denied/Error"}: ${r.message || ""}`]));
+        if(r.policy_decision && Object.keys(r.policy_decision).length){
+          root.appendChild(el("details", {}, [el("summary", {}, ["Policy decision"]), el("pre", {}, [JSON.stringify(r.policy_decision, null, 2)])]));
+        }
+        if(r.selected_plan && r.selected_plan.plan_id){
+          const p = r.selected_plan;
+          root.appendChild(el("div", {style:"margin-top:10px"}, [
+            el("div", {}, [`Selected plan: ${p.plan_id}`]),
+            el("div", {}, [
+              el("span", {class:"pill"}, [`mode: ${p.mode}`]),
+              el("span", {class:"pill"}, [`trust: ${p.mean_trust}`]),
+              el("span", {class:"pill"}, [`cost: ${p.estimated_execution_cost}`]),
+              el("span", {class:"pill"}, [`latency: ${p.estimated_latency_ms}ms`])
+            ]),
+            el("div", {class:"meta"}, [p.explanation || ""])
+          ]));
+        }
+        if(r.pricing && r.pricing.total_user_price != null){
+          root.appendChild(el("div", {class:"card", style:"margin-top:10px;background:rgba(96,165,250,.10)"}, [
+            el("div", {style:"font-size:18px;font-weight:700"}, [`${r.pricing.total_user_price} ${r.pricing.currency || "credits"}`]),
+            el("div", {class:"meta"}, ["User-facing query price"]),
+            el("div", {class:"meta"}, [r.pricing.pricing_note || ""])
+          ]));
+        }
+        if(Array.isArray(r.conflicts) && r.conflicts.length){
+          root.appendChild(el("details", {}, [el("summary", {}, [`Conflicts (${r.conflicts.length})`]), el("pre", {}, [JSON.stringify(r.conflicts, null, 2)])]));
+        }
+        if(Array.isArray(r.candidate_plans) && r.candidate_plans.length){
+          root.appendChild(el("details", {}, [el("summary", {}, [`Candidate plans (${r.candidate_plans.length})`]), el("pre", {}, [JSON.stringify(r.candidate_plans, null, 2)])]));
+        }
+        if(Array.isArray(r.result_rows) && r.result_rows.length){
+          root.appendChild(table(r.result_rows));
+        }
+      }
+
+      async function runQuery(){
+        const btn = $("runBtn");
+        btn.disabled = true;
+        btn.textContent = "Running…";
+        try{
+          const payload = {
+            query: queryInput.value,
+            role: roleSelect.value,
+            purpose: purposeSelect.value,
+            strategy: strategySelect.value,
+            verification: verifyChk.checked,
+            show_all_conflicts: $("conflictsChk").checked
+          };
+          renderResult(await api("/api/query", {method:"POST", body: JSON.stringify(payload)}));
+        }catch(e){
+          renderResult({ok:false, message:e.message});
+        }finally{
+          btn.disabled = false;
+          btn.textContent = "Run query";
+        }
+      }
+
+      async function loadTrust(){
+        const root = $("trust");
+        root.textContent = "Loading trust scores…";
+        try{
+          const data = await api("/api/trust");
+          const sources = Object.values(data.sources || {}).sort((a,b)=>(b.computed_trust||0)-(a.computed_trust||0));
+          root.innerHTML = "";
+          root.appendChild(el("div", {class:"meta"}, [`Cache age seconds: ${data.cache_age_seconds == null ? "n/a" : Number(data.cache_age_seconds).toFixed(2)}`]));
+          const cards = el("div", {class:"trust-cards"}, sources.map(s=>{
+            const pct = Math.round((s.computed_trust || 0) * 100);
+            const color = (s.computed_trust||0) > .8 ? "rgba(34,197,94,.85)" : (s.computed_trust||0) > .6 ? "rgba(245,158,11,.85)" : "rgba(239,68,68,.85)";
+            return el("div", {class:"card"}, [
+              el("div", {style:"display:flex;justify-content:space-between;gap:10px;align-items:baseline"}, [el("div", {}, [s.source_name || "source"]), el("div", {style:"font-weight:700;color:var(--accent)"}, [`${pct}%`])]),
+              el("div", {class:"meta"}, [`${s.dataset || "dataset"} • ${s.source_type || "source"} • provider ${s.provider || "n/a"}`]),
+              el("div", {class:"bar"}, [el("div", {style:`width:${pct}%;background:${color}`})]),
+              el("div", {class:"meta", style:"margin-top:10px"}, [`base ${s.base_trust} • authority ${s.authority_level} • pr ${s.pagerank_reputation} • fresh ${s.freshness_score} (${s.freshness_days}d)`])
+            ]);
+          }));
+          root.appendChild(cards);
+          root.appendChild(el("details", {}, [el("summary", {}, ["Raw trust data"]), el("pre", {}, [JSON.stringify(data, null, 2)])]));
+        }catch(e){
+          root.innerHTML = "";
+          root.appendChild(el("div", {class:"status bad"}, [`Error: ${e.message}`]));
+        }
+      }
+
+      async function checkBackend(){
+        const out = $("result");
+        out.innerHTML = "<div class='status'>Checking backend…</div>";
+        try{
+          const [health, catalogue, sources, audit, trust] = await Promise.all([
+            api("/api/health"), api("/api/catalogue"), api("/api/sources"), api("/api/audit?limit=50"), api("/api/trust")
+          ]);
+          renderMetrics({catalogue, sources, audit, trust});
+          out.innerHTML = "";
+          out.appendChild(el("div", {class:"status ok"}, [`Backend ok: ${health.service} v${health.version}`]));
+        }catch(e){
+          renderMetrics(null);
+          out.innerHTML = "";
+          out.appendChild(el("div", {class:"status bad"}, [`Backend unreachable: ${e.message}`]));
+        }
+      }
+
+      $("runBtn").addEventListener("click", runQuery);
+      $("trustBtn").addEventListener("click", loadTrust);
+      $("refreshBtn").addEventListener("click", checkBackend);
+      checkBackend();
+    </script>
   </body>
 </html>

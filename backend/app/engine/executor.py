@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
 from ..catalogue import CATALOGUE
@@ -62,12 +63,25 @@ def _execute_join(query: ParsedQuery, plan: CandidatePlan, role: str, purpose: s
     left_rows, left_conflicts = resolve_conflicts(left_ds, left_rows_all, left_cols, show_all_conflicts)
     right_rows, right_conflicts = resolve_conflicts(right_ds, right_rows_all, right_cols, show_all_conflicts)
     joined: List[Dict[str, Any]] = []
+
+    # Hash join: O(R+S) instead of O(R*S)
+    right_index: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    join_left = query.join_left or CATALOGUE[left_ds]["entity_key"]
+    join_right = query.join_right or CATALOGUE[right_ds]["entity_key"]
+
+    for rrow in right_rows:
+        key = str(rrow.get(join_right, "")).lower()
+        right_index[key].append(rrow)
+
     for lrow in left_rows:
-        for rrow in right_rows:
-            if str(lrow.get(query.join_left)).lower() == str(rrow.get(query.join_right)).lower():
-                merged = {**{f"{left_ds}.{k}": v for k, v in lrow.items() if not k.startswith("_")}, **{f"{right_ds}.{k}": v for k, v in rrow.items() if not k.startswith("_")}}
-                merged["_chosen_sources"] = [lrow.get("_chosen_source"), rrow.get("_chosen_source")]
-                joined.append(merged)
+        key = str(lrow.get(join_left, "")).lower()
+        for rrow in right_index.get(key, []):
+            merged = {
+                **{f"{left_ds}.{k}": v for k, v in lrow.items() if not k.startswith("_")},
+                **{f"{right_ds}.{k}": v for k, v in rrow.items() if not k.startswith("_")},
+            }
+            merged["_chosen_sources"] = [lrow.get("_chosen_source"), rrow.get("_chosen_source")]
+            joined.append(merged)
     if query.limit:
         joined = joined[: query.limit]
     conflicts = left_conflicts + right_conflicts

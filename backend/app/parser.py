@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import re
 from typing import Optional
+from .config import settings
+from .errors import InvalidQueryError
 from .models import ParsedPredicate, ParsedQuery
 
 _QUERY_RE = re.compile(
@@ -24,7 +26,15 @@ def _strip_quotes(value: str) -> str:
 
 
 def parse_query(raw_query: str) -> ParsedQuery:
+    if not raw_query or not isinstance(raw_query, str):
+        raise InvalidQueryError("Query must be a non-empty string")
+
     raw = raw_query.strip().rstrip(";")
+    if not raw:
+        raise InvalidQueryError("Query must be a non-empty string")
+    if len(raw) > settings.max_query_length:
+        raise InvalidQueryError(f"Query exceeds maximum length of {settings.max_query_length} characters")
+
     verification_hint = False
     if re.search(r"\bWITH\s+VERIFICATION\b", raw, flags=re.IGNORECASE):
         verification_hint = True
@@ -32,7 +42,11 @@ def parse_query(raw_query: str) -> ParsedQuery:
 
     match = _QUERY_RE.match(raw)
     if not match:
-        raise ValueError("Only SELECT col1, col2 FROM dataset [JOIN dataset2 ON a=b] [WHERE col = value] [LIMIT n] [WITH VERIFICATION] is supported.")
+        raise InvalidQueryError(
+            "Query format: SELECT col1, col2 FROM dataset "
+            "[JOIN dataset2 ON a=b] [WHERE col=value] [LIMIT n] [WITH VERIFICATION]. "
+            f"Your query: {raw[:100]}..."
+        )
 
     select_raw = match.group("select").strip()
     select = ["*"] if select_raw == "*" else [c.strip().split(".")[-1] for c in select_raw.split(",") if c.strip()]
@@ -43,7 +57,7 @@ def parse_query(raw_query: str) -> ParsedQuery:
         where_raw = re.sub(r"\s+LIMIT\s+\d+\s*$", "", where_raw, flags=re.IGNORECASE)
         cond = _CONDITION_RE.match(where_raw)
         if not cond:
-            raise ValueError("WHERE currently supports a single condition such as name = 'apple' or rate > 100.")
+            raise InvalidQueryError("WHERE currently supports a single condition such as name = 'apple' or rate > 100.")
         raw_right = cond.group("right").strip()
         was_quoted = (raw_right.startswith("'") and raw_right.endswith("'")) or (raw_right.startswith('"') and raw_right.endswith('"'))
         right_value = _strip_quotes(raw_right)

@@ -1,8 +1,20 @@
+# Python
+.venv/
+venv/
 __pycache__/
 *.pyc
-.venv/
-node_modules/
-dist/
-backend/data/*.db
-backend/data/audit_log.jsonl
+.pytest_cache/
+
+# OS/editor junk
+.DS_Store
+__MACOSX/
+._*
+
+# Environment
 .env
+
+# Frontend dependencies
+frontend/node_modules/
+
+# Keep frontend/dist committed because Docker compose uses the prebuilt frontend.
+# If you edit the frontend, run: cd frontend && npm install && npm run build

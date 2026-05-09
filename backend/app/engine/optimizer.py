@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Dict, List
+from typing import Dict, List, Optional
 from ..catalogue import CATALOGUE
 from ..models import CandidatePlan, ParsedQuery, SourcePlanEstimate
 from .estimator import estimate_join_rows, estimate_source
@@ -39,7 +39,16 @@ def _score(strategy: str, estimates: List[SourcePlanEstimate], verified: bool, j
     return (cost * 1.0) + (latency * 0.004) + (api_calls * 0.25) + (risk * 0.9) - (trust * 1.5) - (fresh * 0.4) + verification_penalty + join_penalty
 
 
-def _make_plan(plan_id: str, mode: str, strategy: str, datasets: List[str], estimates: List[SourcePlanEstimate], explanation: str, complexity: str, warnings: List[str] | None = None) -> CandidatePlan:
+def _make_plan(
+    plan_id: str,
+    mode: str,
+    strategy: str,
+    datasets: List[str],
+    estimates: List[SourcePlanEstimate],
+    explanation: str,
+    complexity: str,
+    warnings: Optional[List[str]] = None,
+) -> CandidatePlan:
     scanned = sum(e.estimated_rows_scanned for e in estimates)
     returned = max((e.estimated_rows_returned for e in estimates), default=0)
     if mode in ("verified", "join_verified"):

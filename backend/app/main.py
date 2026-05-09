@@ -5,14 +5,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .audit import read_audit, write_audit
 from .catalogue import get_catalogue, list_sources
+from .errors import InvalidQueryError, QueryError
 from .engine.executor import execute_plan
 from .engine.optimizer import choose_plan
 from .engine.policy import evaluate_policy
-from .engine.trust import compute_source_trust, pagerank
+from .logging_config import configure_logging
 from .models import QueryRequest, QueryResponse
 from .parser import parse_query
 from .seed import ensure_seed_data
 
+configure_logging()
 ensure_seed_data()
 
 app = FastAPI(title="Trust-Aware Federated Data Economy Platform", version="2.0.0")
@@ -33,7 +35,9 @@ def health():
 @app.get("/api/catalogue")
 def catalogue():
     data = get_catalogue()
-    trust = compute_source_trust()
+    from .engine.trust import trust_cache
+
+    trust = trust_cache.get()
     for dataset in data.values():
         for source_name, src in dataset["sources"].items():
             src["trust"] = trust.get(source_name, {})
@@ -42,7 +46,9 @@ def catalogue():
 
 @app.get("/api/sources")
 def sources():
-    trust = compute_source_trust()
+    from .engine.trust import trust_cache
+
+    trust = trust_cache.get()
     out = []
     for s in list_sources():
         out.append({**s, **trust.get(s["source_name"], {})})
@@ -51,10 +57,13 @@ def sources():
 
 @app.get("/api/trust")
 def trust():
+    from .engine.trust import trust_cache
+
     return {
-        "sources": compute_source_trust(),
+        "sources": trust_cache.get(),
         "provider_pagerank_note": "Provider endorsement graph is scored with PageRank. Source trust then combines base trust, authority, PageRank reputation and freshness.",
         "complexity": "PageRank iteration is O(I*(V+E)), where I is iterations, V providers and E endorsements.",
+        "cache_age_seconds": trust_cache.age_seconds(),
     }
 
 
@@ -130,6 +139,9 @@ def query(req: QueryRequest):
             execution_metrics={"actual_source_metrics": exec_result["metrics"]},
             audit_id=audit_id,
         )
-    except Exception as exc:
+    except (InvalidQueryError, QueryError, ValueError) as exc:
         audit_id = write_audit({**audit_base, "allowed": False, "error": str(exc)})
         return QueryResponse(ok=False, message=str(exc), audit_id=audit_id)
+    except Exception as exc:
+        audit_id = write_audit({**audit_base, "allowed": False, "error": str(exc)})
+        return QueryResponse(ok=False, message="Internal error while executing query.", audit_id=audit_id)

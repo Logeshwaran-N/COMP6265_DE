@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import time
 from math import exp
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from ..config import settings
 from ..catalogue import PROVIDER_ENDORSEMENTS, list_sources
 
 
-def pagerank(graph: Dict[str, List[str]], damping: float = 0.85, iterations: int = 30, tolerance: float = 1e-8) -> Dict[str, float]:
+def pagerank(
+    graph: Dict[str, List[str]],
+    damping: float = settings.pagerank_damping,
+    iterations: int = settings.pagerank_iterations,
+    tolerance: float = settings.pagerank_tolerance,
+) -> Dict[str, float]:
     nodes = sorted(set(graph.keys()) | {dst for out in graph.values() for dst in out})
     n = len(nodes)
     if n == 0:
@@ -62,5 +70,31 @@ def compute_source_trust() -> Dict[str, Dict[str, Any]]:
     return out
 
 
+class TrustCache:
+    def __init__(self, ttl_seconds: float) -> None:
+        self.ttl_seconds = ttl_seconds
+        self._value: Optional[Dict[str, Dict[str, Any]]] = None
+        self._computed_at: Optional[float] = None  # monotonic seconds
+
+    def get(self) -> Dict[str, Dict[str, Any]]:
+        now = time.monotonic()
+        if self._value is None or self._computed_at is None or (now - self._computed_at) > self.ttl_seconds:
+            self._value = compute_source_trust()
+            self._computed_at = now
+        return self._value
+
+    def invalidate(self) -> None:
+        self._value = None
+        self._computed_at = None
+
+    def age_seconds(self) -> Optional[float]:
+        if self._computed_at is None:
+            return None
+        return max(0.0, time.monotonic() - self._computed_at)
+
+
+trust_cache = TrustCache(ttl_seconds=settings.trust_cache_ttl_seconds)
+
+
 def trust_for_source(source_name: str) -> float:
-    return compute_source_trust().get(source_name, {}).get("computed_trust", 0.0)
+    return trust_cache.get().get(source_name, {}).get("computed_trust", 0.0)

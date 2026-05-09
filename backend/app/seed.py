@@ -4,8 +4,10 @@ import csv
 import sqlite3
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
-DB_PATH = DATA_DIR / "warehouse.db"
+from .config import settings
+
+DATA_DIR = settings.data_dir
+DB_PATH = settings.db_path
 
 
 def ensure_seed_data() -> None:
