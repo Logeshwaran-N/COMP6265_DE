@@ -144,13 +144,17 @@ def _exec_api(dataset_name: str, source_name: str, query: ParsedQuery, selected_
         physical_col = source["mapping"].get(query.where.left)
         if physical_col:
             params[physical_col] = query.where.right
-    try:
-        with httpx.Client(timeout=settings.api_timeout_seconds) as client:
-            response = client.get(f"{MOCK_API_BASE_URL}{endpoint}", params=params)
-            response.raise_for_status()
-            physical = response.json()
-    except Exception:
+    base_url = (MOCK_API_BASE_URL or "").strip().lower()
+    if base_url in {"", "internal", "disabled", "fallback", "mock"}:
         physical = FALLBACK_API_DATA.get(endpoint, [])
-        if params:
-            physical = [r for r in physical if all(str(r.get(k)).lower() == str(v).lower() for k, v in params.items())]
+    else:
+        try:
+            with httpx.Client(timeout=settings.api_timeout_seconds) as client:
+                response = client.get(f"{MOCK_API_BASE_URL}{endpoint}", params=params)
+                response.raise_for_status()
+                physical = response.json()
+        except Exception:
+            physical = FALLBACK_API_DATA.get(endpoint, [])
+    if params:
+        physical = [r for r in physical if all(str(r.get(k)).lower() == str(v).lower() for k, v in params.items())]
     return _project_and_map(dataset_name, source_name, physical, query, selected_cols)

@@ -1,17 +1,30 @@
 # Trust-Aware Federated Data Economy Platform
 
-A COMP6265 Data Economy prototype with:
+COMP6265 Data Economy prototype with:
 
-- federated querying over CSV, SQLite and API sources
-- source trust and conflict resolution
+- federated querying over CSV, SQLite and API-style sources
+- trust-aware conflict resolution and source provenance
 - query pricing and execution-cost estimation
-- policy/governance checks
+- ODRL-inspired governance checks
 - audit logging
-- admin-managed email/password accounts
+- admin-managed email/password users
+- local auth for development and Cognito auth for AWS deployment
 
-## Login and users
+## Current branch target
 
-There is no public signup page. Users must be created by an admin.
+This version is prepared for the `logesh-amplify` branch:
+
+```text
+Frontend: AWS Amplify
+Auth: Amazon Cognito
+Backend: AWS App Runner
+```
+
+The EC2/Docker setup still works as a fallback.
+
+## Local login
+
+There is no public signup page. Users are created by the admin.
 
 Local test admin:
 
@@ -58,12 +71,6 @@ If using a VM from Windows, tunnel both ports:
 ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 logesh@YOUR_VM_IP
 ```
 
-Then open:
-
-```text
-http://localhost:5173
-```
-
 ## Local auth storage
 
 Local users are stored in:
@@ -74,46 +81,51 @@ backend/data/users.json
 
 Docker Compose mounts `backend/data` into the backend container, so users created in local testing survive container restarts.
 
-To reset all local users, stop Docker and delete:
+To reset local users:
 
 ```bash
-rm backend/data/users.json
+docker compose down
+rm -f backend/data/users.json backend/data/audit_log.jsonl
+docker compose up --build -d
 ```
 
 The default admin will be recreated on next backend start.
 
-## AWS-compatible auth mode
+## AWS deployment
 
-The app has two backend auth modes:
+Read:
 
 ```text
-AUTH_PROVIDER=local
-AUTH_PROVIDER=cognito
+docs/AWS_DEPLOYMENT.md
+docs/COGNITO_SETUP_NOTES.md
 ```
 
-For local/EC2 testing, use `AUTH_PROVIDER=local`.
+Quick AWS target:
 
-For AWS Cognito, set:
+```text
+Amplify branch: logesh-amplify
+Amplify env: VITE_API_BASE_URL=https://YOUR-APP-RUNNER-URL
+App Runner source directory: backend
+App Runner env: AUTH_PROVIDER=cognito, Cognito IDs, FRONTEND_ORIGINS
+```
+
+## Cognito mode
+
+Set backend environment variables:
 
 ```text
 REQUIRE_AUTH=true
 AUTH_PROVIDER=cognito
-COGNITO_REGION=YOUR_REGION
+COGNITO_REGION=us-east-1
 COGNITO_USER_POOL_ID=YOUR_USER_POOL_ID
 COGNITO_APP_CLIENT_ID=YOUR_APP_CLIENT_ID
 COGNITO_ADMIN_GROUP=admin
+COGNITO_SUPPRESS_INVITE=true
+MOCK_API_BASE_URL=internal
+FRONTEND_ORIGINS=https://YOUR-AMPLIFY-URL
 ```
 
-The Cognito app client must support email/password sign-in from the backend. For this implementation, use an app client without a client secret and enable the password auth flow used by the backend.
-
-For admin-created users in Cognito:
-
-- backend admin action maps to `AdminCreateUser`
-- the user receives/uses a temporary password
-- first login returns `NEW_PASSWORD_REQUIRED`
-- the app submits the new password and continues
-
-For admin list/delete users, the backend needs IAM permission for Cognito user-pool admin APIs.
+The backend verifies Cognito JWT tokens and performs admin user operations through Cognito admin APIs.
 
 ## Data sources
 
@@ -122,14 +134,14 @@ Current prototype sources:
 ```text
 CSV files      backend/data/fruits.csv, backend/data/fx_rates.csv
 SQLite DB      backend/data/warehouse.db
-Mock API       mock_api service on port 8001
+API source     mock_api service locally; in-process fallback in App Runner
 ```
 
-For the final AWS demo, the simplest stable route is EC2 + Docker Compose. CSV files can stay on EC2 storage because the coursework dataset is small. S3 can be described as a production extension if we later move CSV/data-lake files out of EC2.
+For this coursework dataset size, packaged CSV/SQLite is enough for the first cloud model. S3 can be added later if you want a proper cloud data-lake source.
 
-## Frontend build note
+## Frontend build
 
-Docker serves the already-built `frontend/dist` folder. If you change `frontend/index.html`, rebuild the frontend before Docker build:
+Docker serves the already-built `frontend/dist` folder. If you change `frontend/index.html`, rebuild:
 
 ```bash
 cd frontend
@@ -139,10 +151,18 @@ cd ..
 docker compose up --build -d
 ```
 
+Amplify builds automatically using `amplify.yml`.
+
 ## Tests
 
 ```bash
-PYTHONPATH=backend python3 -m pytest backend/tests -q
+PYTHONPATH=backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest backend/tests -q
+```
+
+Expected currently:
+
+```text
+6 passed
 ```
 
 ## Important demo queries

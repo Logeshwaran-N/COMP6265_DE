@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,11 +20,16 @@ from .seed import ensure_seed_data
 configure_logging()
 ensure_seed_data()
 
-app = FastAPI(title="Trust-Aware Federated Data Economy Platform", version="2.0.0")
+app = FastAPI(title="Trust-Aware Federated Data Economy Platform", version="2.2.0")
+
+_frontend_origins_raw = os.getenv("FRONTEND_ORIGINS") or os.getenv("DATA_ECONOMY_FRONTEND_ORIGINS") or "*"
+_frontend_origins = [o.strip().rstrip("/") for o in _frontend_origins_raw.split(",") if o.strip()]
+_allow_all_origins = _frontend_origins == ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*"] if _allow_all_origins else _frontend_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -30,7 +37,7 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "service": "data-economy-backend", "version": "2.0.0"}
+    return {"ok": True, "service": "data-economy-backend", "version": "2.2.0", "auth_provider": auth_provider()}
 
 
 @app.get("/api/auth/me")

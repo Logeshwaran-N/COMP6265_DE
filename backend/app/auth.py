@@ -324,12 +324,33 @@ def complete_cognito_new_password(email: str, session: str, new_password: str) -
         raise HTTPException(status_code=401, detail=f"Could not set new password: {exc}") from exc
 
 
-def _cognito_user_from_claims(claims: dict[str, Any]) -> dict[str, Any]:
-    groups = claims.get("cognito:groups") or []
+def _role_from_groups(groups: Any) -> str:
+    """Map Cognito groups to the role names used by the policy engine.
+
+    Precedence matters. A user can accidentally be in multiple groups, so the
+    highest-privilege role wins deterministically. Group names intentionally
+    match the project roles to keep the AWS setup simple.
+    """
     if isinstance(groups, str):
         groups = [groups]
-    admin_group = os.getenv("COGNITO_ADMIN_GROUP", "admin")
-    role = "admin" if admin_group in groups else "researcher"
+    groups = set(groups or [])
+    priority = [
+        os.getenv("COGNITO_ADMIN_GROUP", "admin"),
+        "data_steward",
+        "analyst",
+        "researcher",
+        "guest",
+        "member",
+    ]
+    for group in priority:
+        if group in groups:
+            return "researcher" if group == "member" else group
+    return "researcher"
+
+
+def _cognito_user_from_claims(claims: dict[str, Any]) -> dict[str, Any]:
+    groups = claims.get("cognito:groups") or []
+    role = _role_from_groups(groups)
     return {
         "sub": claims.get("sub"),
         "email": claims.get("email") or claims.get("username") or claims.get("cognito:username"),
@@ -338,6 +359,7 @@ def _cognito_user_from_claims(claims: dict[str, Any]) -> dict[str, Any]:
         "role": role,
         "status": "CONFIRMED",
         "provider": "cognito",
+        "groups": list(groups) if not isinstance(groups, str) else [groups],
     }
 
 
@@ -380,28 +402,45 @@ def list_cognito_users(query: str | None = None) -> list[dict[str, Any]]:
     for u in resp.get("Users", []):
         attrs = {a["Name"]: a.get("Value") for a in u.get("Attributes", [])}
         username = u.get("Username")
-        role = "researcher"
         try:
             group_resp = client.admin_list_groups_for_user(UserPoolId=cfg["user_pool_id"], Username=username)
             group_names = [g.get("GroupName") for g in group_resp.get("Groups", [])]
-            if admin_group in group_names:
-                role = "admin"
+            role = _role_from_groups(group_names)
         except Exception:
+            group_names = []
             role = "researcher"
-        rows.append({"email": attrs.get("email") or username, "name": attrs.get("name") or attrs.get("email") or username, "role": role, "status": u.get("UserStatus"), "enabled": u.get("Enabled", True), "provider": "cognito"})
+        rows.append({"email": attrs.get("email") or username, "name": attrs.get("name") or attrs.get("email") or username, "role": role, "groups": group_names, "status": u.get("UserStatus"), "enabled": u.get("Enabled", True), "provider": "cognito"})
     return rows
 
 
 def create_cognito_user(email: str, temp_password: str, role: str = "researcher", name: str | None = None) -> dict[str, Any]:
     cfg = _cognito_settings()
     client = _cognito_client()
+    role = role.strip().lower()
+    if role not in {"guest", "analyst", "researcher", "data_steward", "admin"}:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid role")
     attrs = [{"Name": "email", "Value": email}, {"Name": "email_verified", "Value": "true"}]
     if name:
         attrs.append({"Name": "name", "Value": name})
-    client.admin_create_user(UserPoolId=cfg["user_pool_id"], Username=email, TemporaryPassword=temp_password, UserAttributes=attrs)
-    if role == "admin":
-        client.admin_add_user_to_group(UserPoolId=cfg["user_pool_id"], Username=email, GroupName=os.getenv("COGNITO_ADMIN_GROUP", "admin"))
-    return {"email": email, "name": name or email, "role": role, "status": "FORCE_CHANGE_PASSWORD", "enabled": True, "provider": "cognito"}
+    create_kwargs: dict[str, Any] = {
+        "UserPoolId": cfg["user_pool_id"],
+        "Username": email,
+        "TemporaryPassword": temp_password,
+        "UserAttributes": attrs,
+    }
+    if _truthy(os.getenv("COGNITO_SUPPRESS_INVITE"), default=True):
+        create_kwargs["MessageAction"] = "SUPPRESS"
+    else:
+        create_kwargs["DesiredDeliveryMediums"] = ["EMAIL"]
+    client.admin_create_user(**create_kwargs)
+    group_name = os.getenv("COGNITO_ADMIN_GROUP", "admin") if role == "admin" else role
+    try:
+        client.admin_add_user_to_group(UserPoolId=cfg["user_pool_id"], Username=email, GroupName=group_name)
+    except Exception as exc:
+        # The user was created, but role assignment failed. This usually means the Cognito
+        # group has not been created yet. Make the problem clear in the API response.
+        raise HTTPException(status_code=500, detail=f"Cognito user created but group '{group_name}' could not be assigned: {exc}") from exc
+    return {"email": email, "name": name or email, "role": role, "groups": [group_name], "status": "FORCE_CHANGE_PASSWORD", "enabled": True, "provider": "cognito"}
 
 
 def delete_cognito_user(email: str) -> dict[str, Any]:
@@ -431,6 +470,8 @@ def create_user(email: str, temp_password: str, role: str = "researcher", name: 
 
 
 def delete_user(email: str, actor_email: str | None = None) -> dict[str, Any]:
+    if actor_email and email.strip().lower() == actor_email.strip().lower():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Admin cannot remove their own account")
     return delete_cognito_user(email) if auth_provider() == "cognito" else delete_local_user(email, actor_email)
 
 
