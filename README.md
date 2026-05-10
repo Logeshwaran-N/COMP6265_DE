@@ -1,21 +1,43 @@
 # Trust-Aware Federated Data Economy Platform
 
-This version contains the new dark UI, an email/password login page, Google/Cognito sign-in options, the FastAPI backend, and the mock external API.
+A COMP6265 Data Economy prototype with:
 
-## What is inside
+- federated querying over CSV, SQLite and API sources
+- source trust and conflict resolution
+- query pricing and execution-cost estimation
+- policy/governance checks
+- audit logging
+- admin-managed email/password accounts
 
-- `frontend/` - Vite static frontend with the new UI, local email/password login, and Cognito/Google buttons
-- `backend/` - FastAPI backend for catalogue, policy, optimiser, trust, pricing and audit
-- `mock_api/` - Mock external provider used by the backend
-- `aws/lambda/pre_signup_google_link_provider/` - optional Cognito Pre sign-up Lambda for linking Google users by email
-- `docker-compose.yml` - local full-stack run for testing
+## Login and users
 
-## Local run with Docker Compose
+There is no public signup page. Users must be created by an admin.
 
-From the project root:
+Local test admin:
+
+```text
+admin@test.com / Admin@12345
+```
+
+Admin abilities:
+
+- run queries like a normal user
+- add a member with email + temporary password
+- list/search users
+- remove users
+
+When a member signs in with a temporary password, the app asks them to set a new password before entering the platform.
+
+## Run locally with Docker
 
 ```bash
 docker compose up --build -d
+```
+
+For older Docker Compose:
+
+```bash
+docker-compose up --build -d
 ```
 
 Open:
@@ -24,108 +46,90 @@ Open:
 http://localhost:5173
 ```
 
-If running inside a VM and opening from Windows, use the VM IP:
+Backend:
 
 ```text
-http://YOUR_VM_IP:5173
+http://localhost:8000/api/health
 ```
 
-Backend health check:
+If using a VM from Windows, tunnel both ports:
+
+```powershell
+ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 logesh@YOUR_VM_IP
+```
+
+Then open:
 
 ```text
-http://YOUR_VM_IP:8000/api/health
+http://localhost:5173
 ```
 
-For local testing, use the hardcoded email/password form. Demo credentials are:
+## Local auth storage
+
+Local users are stored in:
 
 ```text
-demo@comp6265.local / demo123
-admin@comp6265.local / admin123
+backend/data/users.json
 ```
 
-There is also **Continue without password** for quick UI testing. In AWS production, set `VITE_AUTH_REQUIRED=true` so local login and demo mode are hidden.
+Docker Compose mounts `backend/data` into the backend container, so users created in local testing survive container restarts.
 
-## Email/password and Google login/signup with AWS Cognito
+To reset all local users, stop Docker and delete:
 
-Use Cognito Hosted UI for production. The **Sign in / sign up with Cognito email** button opens the normal Cognito Hosted UI page, where existing Cognito users can log in by email/password and new users can sign up if self-registration is enabled. The **Continue with Google** button sends users directly to Google through the same Cognito User Pool.
+```bash
+rm backend/data/users.json
+```
 
-### Cognito setup summary
+The default admin will be recreated on next backend start.
 
-1. Create a Cognito User Pool.
-2. In sign-in options, allow email/username sign-in. Enable self sign-up if you want new users to create accounts from the Hosted UI.
-3. Add **Google** as an identity provider if you want Google login too.
-4. Create an app client for a browser/static app.
-5. Do **not** use a client secret for the frontend.
-6. Enable OAuth flow for the Hosted UI. This frontend uses the simple browser flow `response_type=token`, so enable the **Implicit grant** flow for the app client.
-7. Add callback and logout URLs:
+## AWS-compatible auth mode
+
+The app has two backend auth modes:
 
 ```text
-http://localhost:5173/
-https://YOUR-AMPLIFY-DOMAIN/
+AUTH_PROVIDER=local
+AUTH_PROVIDER=cognito
 ```
 
-8. Enable scopes:
+For local/EC2 testing, use `AUTH_PROVIDER=local`.
 
-```text
-openid
-email
-profile
-```
-
-9. In Amplify frontend environment variables, set:
-
-```text
-VITE_AUTH_ENABLED=true
-VITE_AUTH_REQUIRED=true
-VITE_COGNITO_DOMAIN=https://YOUR_COGNITO_DOMAIN.auth.YOUR_REGION.amazoncognito.com
-VITE_COGNITO_CLIENT_ID=YOUR_COGNITO_APP_CLIENT_ID
-VITE_COGNITO_REDIRECT_URI=https://YOUR-AMPLIFY-DOMAIN/
-VITE_COGNITO_LOGOUT_URI=https://YOUR-AMPLIFY-DOMAIN/
-VITE_COGNITO_PROVIDER=Google
-VITE_API_BASE_URL=https://YOUR-BACKEND-URL
-```
-
-
-### Local hardcoded login vs Cognito users
-
-The local form is only for VM/coursework testing. The hardcoded users are inside `frontend/index.html` under `LOCAL_USERS`. Do not put real passwords there.
-
-For AWS, create users in the Cognito User Pool or enable Cognito self sign-up. Cognito will authenticate real users through Hosted UI. The frontend does not store real Cognito passwords.
-
-### Backend JWT protection
-
-Local Docker keeps backend auth off:
-
-```text
-REQUIRE_AUTH=false
-```
-
-When deploying the backend, enable Python-side Cognito JWT validation:
+For AWS Cognito, set:
 
 ```text
 REQUIRE_AUTH=true
+AUTH_PROVIDER=cognito
 COGNITO_REGION=YOUR_REGION
 COGNITO_USER_POOL_ID=YOUR_USER_POOL_ID
-COGNITO_APP_CLIENT_ID=YOUR_COGNITO_APP_CLIENT_ID
+COGNITO_APP_CLIENT_ID=YOUR_APP_CLIENT_ID
+COGNITO_ADMIN_GROUP=admin
 ```
 
-The frontend sends the Cognito token in the `Authorization: Bearer ...` header. The backend validates it in Python using Cognito JWKS.
+The Cognito app client must support email/password sign-in from the backend. For this implementation, use an app client without a client secret and enable the password auth flow used by the backend.
 
-## Optional Cognito Pre sign-up Lambda
+For admin-created users in Cognito:
 
-If you later allow both local Cognito users and Google users, use:
+- backend admin action maps to `AdminCreateUser`
+- the user receives/uses a temporary password
+- first login returns `NEW_PASSWORD_REQUIRED`
+- the app submits the new password and continues
+
+For admin list/delete users, the backend needs IAM permission for Cognito user-pool admin APIs.
+
+## Data sources
+
+Current prototype sources:
 
 ```text
-aws/lambda/pre_signup_google_link_provider/lambda_function.py
+CSV files      backend/data/fruits.csv, backend/data/fx_rates.csv
+SQLite DB      backend/data/warehouse.db
+Mock API       mock_api service on port 8001
 ```
 
-Attach it to the Cognito **Pre sign-up** trigger. It links a new Google external provider user to an existing Cognito user with the same email. If you only use Google sign-in, this Lambda is optional.
+For the final AWS demo, the simplest stable route is EC2 + Docker Compose. CSV files can stay on EC2 storage because the coursework dataset is small. S3 can be described as a production extension if we later move CSV/data-lake files out of EC2.
 
-## Why frontend Docker is prebuilt
+## Frontend build note
 
-The Docker frontend intentionally does **not** run `npm install` during Docker build. It serves the already-built `frontend/dist` folder, so Docker startup is fast and avoids npm install hangs.
-
-If you change frontend HTML/JS:
+Docker serves the already-built `frontend/dist` folder. If you change `frontend/index.html`, rebuild the frontend before Docker build:
 
 ```bash
 cd frontend
@@ -135,20 +139,22 @@ cd ..
 docker compose up --build -d
 ```
 
-## Frontend-only development
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## Backend tests
+## Tests
 
 ```bash
 PYTHONPATH=backend python3 -m pytest backend/tests -q
 ```
 
-## AWS Amplify note
+## Important demo queries
 
-Amplify should deploy the **frontend** only. Use the `frontend` folder as the app root. The FastAPI backend must be deployed separately, for example on a server/container service. For coursework testing, Docker Compose runs frontend + backend + mock API together.
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
+```
+
+```sql
+SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
+```
+
+```sql
+SELECT customer_email FROM orders WHERE order_id = 'O-1002'
+```

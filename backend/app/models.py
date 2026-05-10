@@ -152,3 +152,26 @@ class CandidatePlan:
             "explanation": self.explanation,
             "warnings": self.warnings,
         }
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    password: str = Field(..., min_length=1, max_length=256)
+
+
+class NewPasswordRequest(BaseModel):
+    session: str = Field(..., min_length=10)
+    new_password: str = Field(..., min_length=6, max_length=256)
+    email: Optional[str] = Field(default=None, max_length=320)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(..., min_length=1, max_length=256)
+    new_password: str = Field(..., min_length=6, max_length=256)
+
+
+class AdminCreateUserRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    temp_password: str = Field(..., min_length=6, max_length=256)
+    role: RoleEnum = Field(RoleEnum.researcher)
+    name: Optional[str] = Field(default=None, max_length=120)

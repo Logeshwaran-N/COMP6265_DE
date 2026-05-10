@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from .audit import read_audit, write_audit
-from .auth import auth_required, get_current_user
+from .auth import auth_required, get_current_user, login as auth_login, complete_new_password, change_local_password, list_users, create_user, delete_user, require_admin_user, auth_provider
 from .catalogue import get_catalogue, list_sources
 from .errors import InvalidQueryError, QueryError
 from .engine.executor import execute_plan
 from .engine.optimizer import choose_plan
 from .engine.policy import evaluate_policy
 from .logging_config import configure_logging
-from .models import QueryRequest, QueryResponse
+from .models import QueryRequest, QueryResponse, LoginRequest, NewPasswordRequest, PasswordChangeRequest, AdminCreateUserRequest
 from .parser import parse_query
 from .seed import ensure_seed_data
 
@@ -36,6 +36,42 @@ def health():
 @app.get("/api/auth/me")
 def auth_me(user=Depends(get_current_user)):
     return {"ok": True, "auth_required": auth_required(), "user": user}
+
+
+@app.post("/api/auth/login")
+def auth_login_endpoint(req: LoginRequest):
+    return auth_login(req.email, req.password)
+
+
+@app.post("/api/auth/new-password")
+def auth_new_password_endpoint(req: NewPasswordRequest):
+    return complete_new_password(req.email, req.session, req.new_password)
+
+
+@app.post("/api/auth/change-password")
+def auth_change_password_endpoint(req: PasswordChangeRequest, user=Depends(get_current_user)):
+    if auth_provider() != "local":
+        return {"ok": False, "message": "Use Cognito hosted password reset/change flow for Cognito accounts."}
+    return change_local_password(user, req.current_password, req.new_password)
+
+
+@app.get("/api/admin/users")
+def admin_users(search: str = Query(default=""), user=Depends(get_current_user)):
+    require_admin_user(user)
+    return {"users": list_users(search)}
+
+
+@app.post("/api/admin/users")
+def admin_create_user(req: AdminCreateUserRequest, user=Depends(get_current_user)):
+    require_admin_user(user)
+    created = create_user(req.email, req.temp_password, req.role.value if hasattr(req.role, "value") else str(req.role), req.name)
+    return {"ok": True, "user": created}
+
+
+@app.delete("/api/admin/users/{email}")
+def admin_delete_user(email: str, user=Depends(get_current_user)):
+    require_admin_user(user)
+    return delete_user(email, user.get("email"))
 
 
 @app.get("/api/catalogue")
@@ -114,16 +150,27 @@ def algorithm(user=Depends(get_current_user)):
 
 @app.post("/api/query", response_model=QueryResponse)
 def query(req: QueryRequest, user=Depends(get_current_user)):
-    audit_base = {"raw_query": req.query, "role": req.role, "purpose": req.purpose, "strategy": req.strategy, "verification": req.verification}
+    requested_role = req.role.value if hasattr(req.role, "value") else str(req.role)
+    effective_role = requested_role if user.get("role") == "admin" else str(user.get("role") or requested_role)
+    audit_base = {
+        "actor_email": user.get("email"),
+        "actor_role": user.get("role"),
+        "requested_role": requested_role,
+        "effective_role": effective_role,
+        "raw_query": req.query,
+        "purpose": req.purpose,
+        "strategy": req.strategy,
+        "verification": req.verification,
+    }
     try:
         parsed = parse_query(req.query)
         verification = req.verification or parsed.verification_hint
-        policy = evaluate_policy(parsed, req.role, req.purpose, verification)
+        policy = evaluate_policy(parsed, effective_role, req.purpose, verification)
         if not policy["allowed"]:
             audit_id = write_audit({**audit_base, "allowed": False, "reason": policy["reason"]})
             return QueryResponse(ok=False, message="Policy denied the query.", parsed_query=parsed.to_dict(), policy_decision=policy, audit_id=audit_id)
         selected_plan, candidates = choose_plan(parsed, req.strategy, verification)
-        exec_result = execute_plan(parsed, selected_plan, req.role, req.purpose, req.show_all_conflicts)
+        exec_result = execute_plan(parsed, selected_plan, effective_role, req.purpose, req.show_all_conflicts)
         audit_id = write_audit({
             **audit_base,
             "allowed": True,

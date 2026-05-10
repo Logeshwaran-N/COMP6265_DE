@@ -3,498 +3,181 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trust-Aware Data Economy Platform</title>
+    <title>Data Economy Platform</title>
     <style>
-      :root{
-        --bg:#0b1220;--panel:rgba(255,255,255,.06);--panel-strong:rgba(0,0,0,.20);--border:rgba(255,255,255,.10);
-        --text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.52);
-        --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--accent:#60a5fa;--purple:#a78bfa;
-      }
-      *{box-sizing:border-box}
-      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1100px 550px at 20% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(900px 520px at 80% 10%,rgba(34,197,94,.18),transparent 55%),var(--bg);color:var(--text)}
-      .wrap{max-width:1180px;margin:0 auto;padding:22px}
-      .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
-      h1{margin:0;font-size:24px;letter-spacing:-.02em}.sub{color:var(--muted);margin-top:6px;font-size:13px;line-height:1.5}.backend-note{color:var(--muted2);font-size:12px;margin-top:6px}
-      .row{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}.card{border:1px solid var(--border);background:var(--panel-strong);border-radius:16px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
-      .card h2{margin:0 0 8px;font-size:15px}.card h3{margin:14px 0 8px;font-size:13px;color:var(--muted)}
-      label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}textarea,select,input{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);padding:10px 12px;outline:none}
-      option{background:#101827;color:var(--text)}textarea{min-height:130px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45}
-      .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}.check{display:flex;align-items:center;gap:10px;color:var(--muted);margin-top:10px}.check input{width:auto}
-      button{cursor:pointer;border-radius:12px;padding:10px 12px;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);display:inline-flex;align-items:center;gap:8px}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.65;cursor:not-allowed}.split{display:flex;gap:10px;flex-wrap:wrap}
-      .status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);margin-bottom:10px;line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
-      pre{margin:0;max-height:260px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:12px}.pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}
-      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.03);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border)}
-      .trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.meta{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.45}.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:14px;padding:12px}.metric b{display:block;font-size:18px;margin-top:4px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
-      details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}
-
-      .auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px}
-      .auth-box{width:min(560px,100%);border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(0,0,0,.22));border-radius:24px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.38)}
-      .auth-logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.28);font-weight:800;font-size:20px;margin-bottom:14px}
-      .auth-title{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:0}
-      .auth-text{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}
-      .auth-form{display:grid;gap:10px;margin-top:16px}.auth-form label{margin:0 0 -4px}.auth-form input{font-size:14px}.auth-actions{display:grid;gap:10px;margin-top:14px}.google-btn{width:100%;justify-content:center;font-weight:700;background:rgba(255,255,255,.92);color:#111827;border-color:rgba(255,255,255,.75)}.google-btn:hover{background:#fff}.demo-btn,.cognito-btn{width:100%;justify-content:center;font-weight:700}.cognito-btn{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.34)}.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:12px;margin:16px 0 4px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--border);flex:1}.auth-small{color:var(--muted2);font-size:12px;line-height:1.45;margin-top:12px}.auth-msg{margin-top:12px}.user-pill{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      @media(max-width:1050px){.row{grid-template-columns:1fr}.grid3,.trust-cards,.mini-grid{grid-template-columns:1fr}.top{flex-direction:column}.wrap{padding:14px}}
+      :root{--bg:#0b1220;--panel:rgba(255,255,255,.06);--panel2:rgba(15,23,42,.72);--border:rgba(255,255,255,.11);--text:rgba(255,255,255,.93);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--purple:#a78bfa}
+      *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 550px at 15% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(800px 500px at 85% 12%,rgba(167,139,250,.18),transparent 58%),var(--bg);color:var(--text)}
+      button,input,select,textarea{font:inherit} button{cursor:pointer;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;gap:8px;font-weight:650}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.6;cursor:not-allowed}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.04);border-color:var(--border)}
+      input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:10px 12px;outline:none} option{background:#101827;color:var(--text)} textarea{min-height:128px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45} label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
+      .login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(430px,100%);border:1px solid var(--border);border-radius:26px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(15,23,42,.78));box-shadow:0 28px 80px rgba(0,0,0,.38)}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.small{font-size:12px;color:var(--muted2);line-height:1.45;margin-top:12px}.msg{margin-top:12px}.status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+      .wrap{max-width:1220px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:24px;letter-spacing:-.03em}.title .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:16px;padding:13px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:20px;margin-top:5px}.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel2);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.hidden{display:none!important}
+      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.04);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}pre{margin:0;max-height:290px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.035);font-size:12px}details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}.trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
+      @media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.admin-grid{grid-template-columns:1fr}.grid3,.trust-cards,.metrics{grid-template-columns:1fr}.wrap{padding:14px}}
     </style>
   </head>
   <body>
-    <section id="authScreen" class="auth-screen">
-      <div class="auth-box">
-        <div class="auth-logo">DE</div>
-        <h1 class="auth-title">Sign in to Data Economy Platform</h1>
-        <div class="auth-text">Use the local email/password login for VM testing. In AWS, use Cognito Hosted UI for real email/password sign-in or Google sign-in.</div>
-        <form id="localLoginForm" class="auth-form">
-          <label for="emailInput">Email</label>
-          <input id="emailInput" type="email" autocomplete="username" value="demo@comp6265.local" />
-          <label for="passwordInput">Password</label>
-          <input id="passwordInput" type="password" autocomplete="current-password" value="demo123" />
-          <button id="emailLoginBtn" class="demo-btn" type="submit">Login with email and password</button>
+    <section id="loginScreen" class="login">
+      <div class="login-card">
+        <div class="logo">DE</div>
+        <h1>Data Economy Platform</h1>
+        <p id="loginIntro">Sign in with an account created by the platform administrator.</p>
+        <form id="loginForm">
+          <label>Email</label><input id="emailInput" type="email" autocomplete="username" placeholder="admin@test.com" required />
+          <label>Password</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="Password" required />
+          <button id="loginBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Sign in</button>
         </form>
-        <div class="auth-small">Local demo users: <b>demo@comp6265.local / demo123</b> and <b>admin@comp6265.local / admin123</b>.</div>
-        <div class="auth-divider">AWS Cognito options</div>
-        <div class="auth-actions">
-          <button id="cognitoLoginBtn" class="cognito-btn" type="button">Sign in / sign up with Cognito email</button>
-          <button id="googleLoginBtn" class="google-btn" type="button">Continue with Google</button>
-          <button id="demoLoginBtn" class="demo-btn" type="button">Continue without password</button>
-        </div>
-        <div id="authMessage" class="auth-msg"></div>
-        <div class="auth-small">For AWS Amplify: enable Cognito username/email sign-in and Google provider, then set the VITE_COGNITO_* environment variables before building.</div>
+        <form id="newPasswordForm" class="hidden">
+          <label>New password</label><input id="newPasswordInput" type="password" autocomplete="new-password" required />
+          <label>Confirm new password</label><input id="confirmPasswordInput" type="password" autocomplete="new-password" required />
+          <button id="setPasswordBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Set password and continue</button>
+          <button id="backToLoginBtn" class="ghost" type="button" style="width:100%;justify-content:center;margin-top:10px">Back to login</button>
+        </form>
+        <div id="authMessage" class="msg"></div>
       </div>
     </section>
 
-    <div id="appShell" class="wrap" style="display:none">
+    <main id="appShell" class="wrap hidden">
       <div class="top">
-        <div>
-          <h1>Trust-Aware Federated Data Economy Platform</h1>
-          <div class="sub">Query CSV, SQLite and API sources with governance policy checks, trust-based conflict resolution, pricing, and audit logging.</div>
-          <div class="backend-note" id="backendNote"></div>
-        </div>
-        <div class="split">
-          <span id="userBadge" class="user-pill" title="Signed-in user">Local demo</span>
-          <button id="logoutBtn" type="button">Logout</button>
-          <button id="refreshBtn" type="button">Check backend</button>
-          <button id="trustBtn" type="button">Load trust</button>
-        </div>
+        <div class="title"><h1>Trust-Aware Federated Data Economy Platform</h1><div class="sub">Query distributed CSV, database and API sources with policy checks, trust-aware conflict resolution, query pricing and audit evidence.</div></div>
+        <div class="actions"><span id="userBadge" class="pill">Signed in</span><button id="adminToggleBtn" class="ghost hidden" type="button">Admin</button><button id="refreshBtn" class="ghost" type="button">Refresh</button><button id="logoutBtn" type="button">Logout</button></div>
       </div>
 
-      <div class="mini-grid" id="metrics"></div>
+      <section id="adminPanel" class="card hidden" style="margin-bottom:14px">
+        <h2>User administration</h2>
+        <div class="meta">Create users with a temporary password. On first login they must set a new password.</div>
+        <div class="admin-grid" style="margin-top:8px">
+          <form id="createUserForm">
+            <label>Email</label><input id="newUserEmail" type="email" placeholder="member@example.com" required />
+            <label>Name</label><input id="newUserName" type="text" placeholder="Member name" />
+            <div class="grid3"><div><label>Role</label><select id="newUserRole"><option>researcher</option><option>analyst</option><option>data_steward</option><option>admin</option></select></div><div style="grid-column:span 2"><label>Temporary password</label><input id="newUserPassword" type="text" value="Temp@12345" required /></div></div>
+            <button id="createUserBtn" type="submit" style="margin-top:12px">Add member</button>
+          </form>
+          <div>
+            <label>Search users</label><input id="userSearch" type="search" placeholder="Search by email, name or role" />
+            <div id="usersList"></div>
+          </div>
+        </div>
+      </section>
 
-      <div class="row" style="margin-top:14px">
+      <section class="metrics" id="metrics"></section>
+
+      <section class="grid">
         <div class="card">
-          <h2>Query Builder</h2>
-          <div class="meta">Choose a scenario, change role/purpose/strategy, then run the federated query.</div>
-          <label>Example queries</label>
-          <select id="exampleSelect"></select>
-          <label>SQL-like query</label>
-          <textarea id="queryInput"></textarea>
+          <h2>Federated Query Console</h2>
+          <label>Example query</label><select id="exampleSelect"></select>
+          <label>SQL-like query</label><textarea id="queryInput"></textarea>
           <div class="grid3">
-            <div><label>Role</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
+            <div><label>Role used for policy check</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
             <div><label>Purpose</label><select id="purposeSelect"><option selected>research</option><option>commercial</option><option>planning</option><option>internal_audit</option></select></div>
             <div><label>Strategy</label><select id="strategySelect"><option selected>balanced</option><option>cheapest</option><option>trust_first</option><option>privacy_first</option></select></div>
           </div>
-          <label class="check"><input id="verifyChk" type="checkbox" /> Force verification across sources</label>
-          <label class="check"><input id="conflictsChk" type="checkbox" checked /> Show all conflicts for demo</label>
-          <div style="margin-top:12px"><button id="runBtn" type="button">Run query</button></div>
+          <label class="check"><input id="verifyChk" type="checkbox" /> Verify across available sources</label>
+          <label class="check"><input id="conflictsChk" type="checkbox" checked /> Include provenance when conflicts exist</label>
+          <button id="runBtn" type="button" style="margin-top:12px">Run query</button>
         </div>
+        <div class="card"><h2>Result</h2><div id="result"><div class="status">Run a query to view result rows, source plan, price and provenance.</div></div></div>
+      </section>
 
-        <div class="card">
-          <h2>Result</h2>
-          <div id="result"><div class="status">Run a query to see policy decision, selected source plan, price, conflicts and result rows.</div></div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px">
-        <h2>Trust visualization</h2>
-        <div class="meta">Computed trust combines base trust, authority, provider PageRank reputation and freshness.</div>
-        <div id="trust"></div>
-      </div>
-      <div class="footer">Docker local test: frontend 5173, backend 8000, mock API 8001. For Amplify, deploy the frontend folder and set VITE_API_BASE_URL to your backend URL.</div>
-    </div>
+      <section class="card" style="margin-top:14px"><h2>Source Trust</h2><div id="trust"><div class="status">Trust scores will load after refresh.</div></div></section>
+      <div class="footer">Prototype for COMP6265 Data Economy coursework</div>
+    </main>
 
     <script type="module">
       const configuredBase = import.meta.env.VITE_API_BASE_URL || "";
       const browserHost = window.location.hostname;
       const browserProtocol = window.location.protocol;
       const localHosts = ["localhost", "127.0.0.1", "0.0.0.0"];
-      const backendBase = configuredBase && !(configuredBase.includes("localhost") && !localHosts.includes(browserHost))
-        ? configuredBase.replace(/\/$/, "")
-        : `${browserProtocol}//${browserHost}:8000`;
-
-      document.getElementById("backendNote").textContent = `Backend: ${backendBase}`;
-
-      const AUTH_ENABLED = String(import.meta.env.VITE_AUTH_ENABLED ?? "true").toLowerCase() !== "false";
-      const AUTH_REQUIRED = String(import.meta.env.VITE_AUTH_REQUIRED || "false").toLowerCase() === "true";
-      const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN || "").trim();
-      const COGNITO_CLIENT_ID = (import.meta.env.VITE_COGNITO_CLIENT_ID || "").trim();
-      const COGNITO_REDIRECT_URI = (import.meta.env.VITE_COGNITO_REDIRECT_URI || `${window.location.origin}${window.location.pathname}`).trim();
-      const COGNITO_LOGOUT_URI = (import.meta.env.VITE_COGNITO_LOGOUT_URI || `${window.location.origin}${window.location.pathname}`).trim();
-      const COGNITO_PROVIDER = (import.meta.env.VITE_COGNITO_PROVIDER || "Google").trim();
-      const AUTH_SESSION_KEY = "comp6265_data_economy_auth";
-      const LOCAL_USERS = [
-        { email: "demo@comp6265.local", password: "demo123", name: "Demo User", role: "researcher" },
-        { email: "admin@comp6265.local", password: "admin123", name: "Admin Demo User", role: "admin" }
-      ];
-
-      function normaliseCognitoDomain(domain){
-        if(!domain) return "";
-        return domain.startsWith("http") ? domain.replace(/\/$/, "") : `https://${domain.replace(/\/$/, "")}`;
-      }
-
-      function decodeJwtPayload(token){
-        try{
-          const payload = token.split(".")[1];
-          const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
-          return JSON.parse(decodeURIComponent(json.split("").map(c => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`).join("")));
-        }catch(_){
-          return {};
-        }
-      }
-
-      function readSession(){
-        try{
-          const raw = localStorage.getItem(AUTH_SESSION_KEY);
-          if(!raw) return null;
-          const session = JSON.parse(raw);
-          if(session.expiresAt && Date.now() > session.expiresAt){
-            localStorage.removeItem(AUTH_SESSION_KEY);
-            return null;
-          }
-          return session;
-        }catch(_){
-          localStorage.removeItem(AUTH_SESSION_KEY);
-          return null;
-        }
-      }
-
-      function saveSession(session){
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-      }
-
-      function parseAuthRedirect(){
-        if(!window.location.hash.includes("access_token") && !window.location.hash.includes("id_token")) return null;
-        const params = new URLSearchParams(window.location.hash.slice(1));
-        const accessToken = params.get("access_token");
-        const idToken = params.get("id_token");
-        const expiresIn = Number(params.get("expires_in") || 3600);
-        const claims = decodeJwtPayload(idToken || accessToken || "");
-        const session = {
-          provider: "cognito",
-          accessToken,
-          idToken,
-          email: claims.email || claims["cognito:username"] || "Cognito user",
-          name: claims.name || claims.given_name || claims.email || "Cognito user",
-          expiresAt: Date.now() + Math.max(60, expiresIn - 30) * 1000
-        };
-        saveSession(session);
-        history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-        return session;
-      }
-
-      function authHeaders(){
-        const session = readSession();
-        const token = session?.accessToken || session?.idToken;
-        return token ? { Authorization: `Bearer ${token}` } : {};
-      }
-
-      function authConfigured(){
-        return Boolean(normaliseCognitoDomain(COGNITO_DOMAIN) && COGNITO_CLIENT_ID);
-      }
-
-      function setAuthMessage(message, kind="status"){
-        const root = document.getElementById("authMessage");
-        root.innerHTML = "";
-        if(message) root.appendChild(el("div", {class:`status ${kind}`}, [message]));
-      }
-
-      function buildCognitoAuthorizeUrl(extraParams={}){
-        const domain = normaliseCognitoDomain(COGNITO_DOMAIN);
-        if(!domain || !COGNITO_CLIENT_ID){
-          setAuthMessage("Cognito is not configured yet. For local testing, use the hardcoded local email/password login. For AWS, set VITE_COGNITO_DOMAIN and VITE_COGNITO_CLIENT_ID.", "bad");
-          return "";
-        }
-        const params = new URLSearchParams({
-          client_id: COGNITO_CLIENT_ID,
-          response_type: "token",
-          scope: "openid email profile",
-          redirect_uri: COGNITO_REDIRECT_URI,
-          ...extraParams
-        });
-        return `${domain}/oauth2/authorize?${params.toString()}`;
-      }
-
-      function startCognitoLogin(){
-        const url = buildCognitoAuthorizeUrl();
-        if(url) window.location.href = url;
-      }
-
-      function startGoogleLogin(){
-        const url = buildCognitoAuthorizeUrl({ identity_provider: COGNITO_PROVIDER });
-        if(url) window.location.href = url;
-      }
-
-      function localEmailLogin(event){
-        if(event) event.preventDefault();
-        const email = (document.getElementById("emailInput")?.value || "").trim().toLowerCase();
-        const password = document.getElementById("passwordInput")?.value || "";
-        const user = LOCAL_USERS.find(u => u.email.toLowerCase() === email && u.password === password);
-        if(!user){
-          setAuthMessage("Invalid local email/password. Try demo@comp6265.local / demo123 or admin@comp6265.local / admin123.", "bad");
-          return;
-        }
-        saveSession({provider:"local-password", name:user.name, email:user.email, role:user.role, expiresAt: Date.now() + 8*60*60*1000});
-        renderAuthState();
-        checkBackend();
-      }
-
-      function continueDemo(){
-        saveSession({provider:"local-demo", name:"Local demo user", email:"local-demo@comp6265.local", expiresAt: Date.now() + 8*60*60*1000});
-        renderAuthState();
-        checkBackend();
-      }
-
-      function logout(){
-        const session = readSession();
-        localStorage.removeItem(AUTH_SESSION_KEY);
-        const domain = normaliseCognitoDomain(COGNITO_DOMAIN);
-        if(session?.provider?.startsWith("cognito") && domain && COGNITO_CLIENT_ID){
-          const params = new URLSearchParams({client_id: COGNITO_CLIENT_ID, logout_uri: COGNITO_LOGOUT_URI});
-          window.location.href = `${domain}/logout?${params.toString()}`;
-          return;
-        }
-        renderAuthState();
-      }
-
-      function renderAuthState(){
-        const session = parseAuthRedirect() || readSession();
-        const authScreen = document.getElementById("authScreen");
-        const appShell = document.getElementById("appShell");
-        const userBadge = document.getElementById("userBadge");
-        const googleBtn = document.getElementById("googleLoginBtn");
-        const cognitoBtn = document.getElementById("cognitoLoginBtn");
-        const demoBtn = document.getElementById("demoLoginBtn");
-        const localForm = document.getElementById("localLoginForm");
-
-        if(googleBtn) googleBtn.disabled = AUTH_ENABLED && !authConfigured() && AUTH_REQUIRED;
-        if(cognitoBtn) cognitoBtn.disabled = AUTH_ENABLED && !authConfigured() && AUTH_REQUIRED;
-        if(demoBtn) demoBtn.style.display = AUTH_REQUIRED ? "none" : "inline-flex";
-        if(localForm) localForm.style.display = AUTH_REQUIRED ? "none" : "grid";
-
-        if(!AUTH_ENABLED || session){
-          authScreen.style.display = "none";
-          appShell.style.display = "block";
-          if(userBadge){
-            const label = session ? `${session.name || session.email || "Signed in"}` : "Auth disabled";
-            userBadge.textContent = label;
-            userBadge.title = session?.email || label;
-          }
-          return true;
-        }
-
-        authScreen.style.display = "grid";
-        appShell.style.display = "none";
-        setAuthMessage(authConfigured() ? "Cognito is ready. Use Cognito email/password or Google for AWS login. Local email/password is only for VM testing." : "Cognito details are not configured in this build. Use the local hardcoded email/password login now, then set Amplify environment variables before production deployment.", authConfigured() ? "ok" : "");
-        return false;
-      }
-
-      const EXAMPLES = [
-        { title: "FX verified conflict", query: "SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION", role:"analyst", purpose:"research", strategy:"trust_first", verify:true },
-        { title: "Apple prices verified", query: "SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION", role:"researcher", purpose:"research", strategy:"balanced", verify:true },
-        { title: "Range filter", query: "SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5", role:"researcher", purpose:"planning", strategy:"cheapest", verify:false },
-        { title: "PII policy deny", query: "SELECT customer_email FROM orders WHERE order_id = 'O-1002'", role:"researcher", purpose:"research", strategy:"privacy_first", verify:false },
-        { title: "Join demo", query: "SELECT name, price_gbp, supplier_name FROM fruits JOIN suppliers ON supplier_id = supplier_id WHERE name = 'apple'", role:"researcher", purpose:"research", strategy:"balanced", verify:false }
-      ];
+      const backendBase = configuredBase && !(configuredBase.includes("localhost") && !localHosts.includes(browserHost)) ? configuredBase.replace(/\/$/, "") : `${browserProtocol}//${browserHost}:8000`;
+      const SESSION_KEY = "comp6265_de_session";
+      let pendingChallenge = null;
 
       const $ = (id) => document.getElementById(id);
-      const exampleSelect = $("exampleSelect");
-      const queryInput = $("queryInput");
-      const roleSelect = $("roleSelect");
-      const purposeSelect = $("purposeSelect");
-      const strategySelect = $("strategySelect");
-      const verifyChk = $("verifyChk");
-
-      EXAMPLES.forEach((e, i) => {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = e.title;
-        exampleSelect.appendChild(opt);
-      });
-
-      function loadExample(i){
-        const ex = EXAMPLES[i];
-        queryInput.value = ex.query;
-        roleSelect.value = ex.role;
-        purposeSelect.value = ex.purpose;
-        strategySelect.value = ex.strategy;
-        verifyChk.checked = ex.verify;
-      }
-      exampleSelect.addEventListener("change", () => loadExample(Number(exampleSelect.value)));
-      loadExample(0);
+      const el = (tag, attrs={}, children=[]) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='class')n.className=v; else if(k==='style')n.setAttribute('style',v); else if(k.startsWith('on') && typeof v==='function')n.addEventListener(k.slice(2),v); else n.setAttribute(k,v); }); children.forEach(c=>n.appendChild(typeof c==='string'?document.createTextNode(c):c)); return n; };
+      const session = () => { try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} };
+      const saveSession = (s) => localStorage.setItem(SESSION_KEY, JSON.stringify({...s, expiresAt: Date.now()+8*60*60*1000}));
+      const clearSession = () => localStorage.removeItem(SESSION_KEY);
+      const authHeaders = () => session()?.access_token ? {Authorization:`Bearer ${session().access_token}`} : {};
+      function msg(text, kind=''){ const root=$('authMessage'); root.innerHTML=''; if(text) root.appendChild(el('div',{class:`status ${kind}`},[text])); }
 
       async function api(path, options={}){
         let res;
-        try{
-          res = await fetch(`${backendBase}${path}`, {
-            ...options,
-            headers: { "Content-Type": "application/json", ...authHeaders(), ...(options.headers||{}) }
-          });
-        }catch(err){
-          throw new Error(`Cannot reach backend at ${backendBase}. Check docker compose ports or set VITE_API_BASE_URL. ${err.message}`);
-        }
-        const contentType = res.headers.get("content-type") || "";
-        const body = contentType.includes("application/json") ? await res.json() : await res.text();
-        if(!res.ok){
-          const msg = typeof body === "string" ? body : (body.message || JSON.stringify(body));
-          throw new Error(`HTTP ${res.status}: ${msg}`);
-        }
+        try{ res = await fetch(`${backendBase}${path}`, { ...options, headers:{'Content-Type':'application/json', ...authHeaders(), ...(options.headers||{})} }); }
+        catch(err){ throw new Error(`Cannot reach backend at ${backendBase}: ${err.message}`); }
+        const body = (res.headers.get('content-type')||'').includes('application/json') ? await res.json() : await res.text();
+        if(!res.ok){ if(res.status===401){ clearSession(); renderAuth(); } const detail = typeof body==='string' ? body : (body.detail || body.message || JSON.stringify(body)); throw new Error(detail); }
         return body;
       }
 
-      function el(tag, attrs={}, children=[]){
-        const n = document.createElement(tag);
-        Object.entries(attrs).forEach(([k,v])=>{
-          if(k === "class") n.className = v;
-          else if(k === "style") n.setAttribute("style", v);
-          else n.setAttribute(k, v);
-        });
-        children.forEach(c => n.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
-        return n;
+      function renderAuth(){
+        const s=session();
+        if(s && (!s.expiresAt || Date.now()<s.expiresAt)){
+          $('loginScreen').classList.add('hidden'); $('appShell').classList.remove('hidden');
+          const u=s.user||{}; $('userBadge').textContent=`${u.name||u.email||'User'} • ${u.role||'role'}`;
+          const isAdmin = u.role === 'admin'; $('adminToggleBtn').classList.toggle('hidden', !isAdmin); $('adminPanel').classList.add('hidden');
+          applyRole(u); refreshAll(); return;
+        }
+        clearSession(); $('loginScreen').classList.remove('hidden'); $('appShell').classList.add('hidden');
       }
 
-      function table(rows){
-        if(!Array.isArray(rows) || !rows.length) return el("div", {class:"status"}, ["No rows returned."]);
-        const cols = Object.keys(rows[0]);
-        return el("div", {class:"table-wrap", style:"margin-top:10px"}, [
-          el("table", {}, [
-            el("thead", {}, [el("tr", {}, cols.map(c=>el("th", {}, [c])))]),
-            el("tbody", {}, rows.map(row => el("tr", {}, cols.map(c=>el("td", {}, [String(row[c] ?? "")])))))
-          ])
-        ]);
+      function applyRole(user){
+        if(user.role === 'admin'){ $('roleSelect').disabled=false; return; }
+        $('roleSelect').value = user.role || 'researcher'; $('roleSelect').disabled=true;
       }
 
-      function renderMetrics(data){
-        const root = $("metrics");
-        if(!data){ root.innerHTML = ""; return; }
-        const catalogueCount = Object.keys(data.catalogue || {}).length;
-        const sourceCount = Array.isArray(data.sources) ? data.sources.length : 0;
-        const auditCount = Array.isArray(data.audit) ? data.audit.length : 0;
-        const trustSources = Object.keys((data.trust || {}).sources || {}).length;
-        root.innerHTML = "";
-        [["Datasets", catalogueCount], ["Sources", sourceCount], ["Trust scores", trustSources], ["Audit events", auditCount]].forEach(([label, value]) => {
-          root.appendChild(el("div", {class:"metric"}, [el("span", {}, [label]), el("b", {}, [String(value)])]));
-        });
-      }
-
-      function renderResult(r){
-        const root = $("result");
-        root.innerHTML = "";
-        root.appendChild(el("div", { class: `status ${r.ok ? "ok":"bad"}`}, [`${r.ok ? "Approved" : "Denied/Error"}: ${r.message || ""}`]));
-        if(r.policy_decision && Object.keys(r.policy_decision).length){
-          root.appendChild(el("details", {}, [el("summary", {}, ["Policy decision"]), el("pre", {}, [JSON.stringify(r.policy_decision, null, 2)])]));
-        }
-        if(r.selected_plan && r.selected_plan.plan_id){
-          const p = r.selected_plan;
-          root.appendChild(el("div", {style:"margin-top:10px"}, [
-            el("div", {}, [`Selected plan: ${p.plan_id}`]),
-            el("div", {}, [
-              el("span", {class:"pill"}, [`mode: ${p.mode}`]),
-              el("span", {class:"pill"}, [`trust: ${p.mean_trust}`]),
-              el("span", {class:"pill"}, [`cost: ${p.estimated_execution_cost}`]),
-              el("span", {class:"pill"}, [`latency: ${p.estimated_latency_ms}ms`])
-            ]),
-            el("div", {class:"meta"}, [p.explanation || ""])
-          ]));
-        }
-        if(r.pricing && r.pricing.total_user_price != null){
-          root.appendChild(el("div", {class:"card", style:"margin-top:10px;background:rgba(96,165,250,.10)"}, [
-            el("div", {style:"font-size:18px;font-weight:700"}, [`${r.pricing.total_user_price} ${r.pricing.currency || "credits"}`]),
-            el("div", {class:"meta"}, ["User-facing query price"]),
-            el("div", {class:"meta"}, [r.pricing.pricing_note || ""])
-          ]));
-        }
-        if(Array.isArray(r.conflicts) && r.conflicts.length){
-          root.appendChild(el("details", {}, [el("summary", {}, [`Conflicts (${r.conflicts.length})`]), el("pre", {}, [JSON.stringify(r.conflicts, null, 2)])]));
-        }
-        if(Array.isArray(r.candidate_plans) && r.candidate_plans.length){
-          root.appendChild(el("details", {}, [el("summary", {}, [`Candidate plans (${r.candidate_plans.length})`]), el("pre", {}, [JSON.stringify(r.candidate_plans, null, 2)])]));
-        }
-        if(Array.isArray(r.result_rows) && r.result_rows.length){
-          root.appendChild(table(r.result_rows));
-        }
-      }
-
-      async function runQuery(){
-        const btn = $("runBtn");
-        btn.disabled = true;
-        btn.textContent = "Running…";
+      $('loginForm').addEventListener('submit', async (ev)=>{
+        ev.preventDefault(); msg('Signing in...'); $('loginBtn').disabled=true;
         try{
-          const payload = {
-            query: queryInput.value,
-            role: roleSelect.value,
-            purpose: purposeSelect.value,
-            strategy: strategySelect.value,
-            verification: verifyChk.checked,
-            show_all_conflicts: $("conflictsChk").checked
-          };
-          renderResult(await api("/api/query", {method:"POST", body: JSON.stringify(payload)}));
-        }catch(e){
-          renderResult({ok:false, message:e.message});
-        }finally{
-          btn.disabled = false;
-          btn.textContent = "Run query";
-        }
-      }
+          const res = await api('/api/auth/login',{method:'POST', body:JSON.stringify({email:$('emailInput').value.trim(), password:$('passwordInput').value})});
+          if(res.challenge === 'NEW_PASSWORD_REQUIRED'){
+            pendingChallenge = {session:res.session, email:$('emailInput').value.trim(), user:res.user};
+            $('loginForm').classList.add('hidden'); $('newPasswordForm').classList.remove('hidden'); $('loginIntro').textContent='Set a new password to activate your account.'; msg('Temporary password accepted. Please set a new password.','ok'); return;
+          }
+          saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth();
+        }catch(e){ msg(e.message,'bad'); } finally { $('loginBtn').disabled=false; }
+      });
 
-      async function loadTrust(){
-        const root = $("trust");
-        root.textContent = "Loading trust scores…";
+      $('newPasswordForm').addEventListener('submit', async (ev)=>{
+        ev.preventDefault(); const p=$('newPasswordInput').value, c=$('confirmPasswordInput').value; if(p!==c){msg('Passwords do not match.','bad');return;} $('setPasswordBtn').disabled=true;
         try{
-          const data = await api("/api/trust");
-          const sources = Object.values(data.sources || {}).sort((a,b)=>(b.computed_trust||0)-(a.computed_trust||0));
-          root.innerHTML = "";
-          root.appendChild(el("div", {class:"meta"}, [`Cache age seconds: ${data.cache_age_seconds == null ? "n/a" : Number(data.cache_age_seconds).toFixed(2)}`]));
-          const cards = el("div", {class:"trust-cards"}, sources.map(s=>{
-            const pct = Math.round((s.computed_trust || 0) * 100);
-            const color = (s.computed_trust||0) > .8 ? "rgba(34,197,94,.85)" : (s.computed_trust||0) > .6 ? "rgba(245,158,11,.85)" : "rgba(239,68,68,.85)";
-            return el("div", {class:"card"}, [
-              el("div", {style:"display:flex;justify-content:space-between;gap:10px;align-items:baseline"}, [el("div", {}, [s.source_name || "source"]), el("div", {style:"font-weight:700;color:var(--accent)"}, [`${pct}%`])]),
-              el("div", {class:"meta"}, [`${s.dataset || "dataset"} • ${s.source_type || "source"} • provider ${s.provider || "n/a"}`]),
-              el("div", {class:"bar"}, [el("div", {style:`width:${pct}%;background:${color}`})]),
-              el("div", {class:"meta", style:"margin-top:10px"}, [`base ${s.base_trust} • authority ${s.authority_level} • pr ${s.pagerank_reputation} • fresh ${s.freshness_score} (${s.freshness_days}d)`])
-            ]);
-          }));
-          root.appendChild(cards);
-          root.appendChild(el("details", {}, [el("summary", {}, ["Raw trust data"]), el("pre", {}, [JSON.stringify(data, null, 2)])]));
-        }catch(e){
-          root.innerHTML = "";
-          root.appendChild(el("div", {class:"status bad"}, [`Error: ${e.message}`]));
-        }
-      }
+          const res = await api('/api/auth/new-password',{method:'POST', body:JSON.stringify({email:pendingChallenge?.email, session:pendingChallenge?.session, new_password:p})});
+          pendingChallenge=null; saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth();
+        }catch(e){ msg(e.message,'bad'); } finally { $('setPasswordBtn').disabled=false; }
+      });
+      $('backToLoginBtn').addEventListener('click',()=>{pendingChallenge=null; $('newPasswordForm').classList.add('hidden'); $('loginForm').classList.remove('hidden'); $('loginIntro').textContent='Sign in with an account created by the platform administrator.'; msg('');});
+      $('logoutBtn').addEventListener('click',()=>{clearSession(); renderAuth();});
+      $('adminToggleBtn').addEventListener('click',()=>{ $('adminPanel').classList.toggle('hidden'); if(!$('adminPanel').classList.contains('hidden')) loadUsers(); });
 
-      async function checkBackend(){
-        const out = $("result");
-        out.innerHTML = "<div class='status'>Checking backend…</div>";
-        try{
-          const [health, catalogue, sources, audit, trust] = await Promise.all([
-            api("/api/health"), api("/api/catalogue"), api("/api/sources"), api("/api/audit?limit=50"), api("/api/trust")
-          ]);
-          renderMetrics({catalogue, sources, audit, trust});
-          out.innerHTML = "";
-          out.appendChild(el("div", {class:"status ok"}, [`Backend ok: ${health.service} v${health.version}`]));
-        }catch(e){
-          renderMetrics(null);
-          out.innerHTML = "";
-          out.appendChild(el("div", {class:"status bad"}, [`Backend unreachable: ${e.message}`]));
-        }
-      }
+      const EXAMPLES=[
+        {title:'GBP/INR verified rate',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION",role:'analyst',purpose:'research',strategy:'trust_first',verify:true},
+        {title:'Apple price conflict',query:"SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION",role:'researcher',purpose:'research',strategy:'balanced',verify:true},
+        {title:'Fruit range query',query:"SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5",role:'researcher',purpose:'planning',strategy:'cheapest',verify:false},
+        {title:'PII policy check',query:"SELECT customer_email FROM orders WHERE order_id = 'O-1002'",role:'researcher',purpose:'research',strategy:'privacy_first',verify:false},
+        {title:'Supplier join',query:"SELECT name, price_gbp, supplier_name FROM fruits JOIN suppliers ON supplier_id = supplier_id WHERE name = 'apple'",role:'researcher',purpose:'research',strategy:'balanced',verify:false}
+      ];
+      EXAMPLES.forEach((e,i)=>$('exampleSelect').appendChild(el('option',{value:String(i)},[e.title])));
+      function loadExample(i){const e=EXAMPLES[i]; $('queryInput').value=e.query; if(!$('roleSelect').disabled)$('roleSelect').value=e.role; $('purposeSelect').value=e.purpose; $('strategySelect').value=e.strategy; $('verifyChk').checked=e.verify;}
+      $('exampleSelect').addEventListener('change',()=>loadExample(Number($('exampleSelect').value))); loadExample(0);
 
-      $("runBtn").addEventListener("click", runQuery);
-      $("trustBtn").addEventListener("click", loadTrust);
-      $("refreshBtn").addEventListener("click", checkBackend);
-      $("logoutBtn").addEventListener("click", logout);
-      $("localLoginForm").addEventListener("submit", localEmailLogin);
-      $("cognitoLoginBtn").addEventListener("click", startCognitoLogin);
-      $("googleLoginBtn").addEventListener("click", startGoogleLogin);
-      $("demoLoginBtn").addEventListener("click", continueDemo);
-      if(renderAuthState()) checkBackend();
+      function table(rows){ if(!rows?.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(rows[0]); return el('div',{class:'table-wrap'},[el('table',{},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[c])))]),el('tbody',{},rows.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
+      function renderMetrics(data){const items=[['Datasets',Object.keys(data.catalogue||{}).length],['Sources',(data.sources||[]).length],['Trust scores',Object.keys(data.trust?.sources||{}).length],['Audit events',(data.audit||[]).length]]; $('metrics').innerHTML=''; items.forEach(([l,v])=>$('metrics').appendChild(el('div',{class:'metric'},[el('span',{},[l]),el('b',{},[String(v)])])));}
+      function renderResult(r){const root=$('result'); root.innerHTML=''; root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`])); if(r.selected_plan?.plan_id){const p=r.selected_plan; root.appendChild(el('div',{style:'margin-top:10px'},[el('div',{},[`Selected plan: ${p.plan_id}`]),el('div',{},[el('span',{class:'tag'},[`mode: ${p.mode}`]),el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),el('span',{class:'tag'},[`cost: ${p.estimated_execution_cost}`]),el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`])]),el('div',{class:'meta'},[p.explanation||''])]));} if(r.pricing?.total_user_price!=null){root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));} if(r.result_rows?.length)root.appendChild(table(r.result_rows)); if(r.conflicts?.length)root.appendChild(el('details',{},[el('summary',{},[`Provenance and conflicts (${r.conflicts.length})`]),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])); if(r.candidate_plans?.length)root.appendChild(el('details',{},[el('summary',{},[`Execution plan candidates (${r.candidate_plans.length})`]),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])); if(r.policy_decision && Object.keys(r.policy_decision).length)root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));}
+
+      async function runQuery(){ $('runBtn').disabled=true; $('runBtn').textContent='Running...'; try{const payload={query:$('queryInput').value, role:$('roleSelect').value, purpose:$('purposeSelect').value, strategy:$('strategySelect').value, verification:$('verifyChk').checked, show_all_conflicts:$('conflictsChk').checked}; renderResult(await api('/api/query',{method:'POST',body:JSON.stringify(payload)})); await refreshMetricsOnly();}catch(e){renderResult({ok:false,message:e.message});}finally{$('runBtn').disabled=false;$('runBtn').textContent='Run query';}}
+      $('runBtn').addEventListener('click',runQuery);
+
+      async function refreshMetricsOnly(){try{const [catalogue,sources,audit,trust]=await Promise.all([api('/api/catalogue'),api('/api/sources'),api('/api/audit?limit=50'),api('/api/trust')]); renderMetrics({catalogue,sources,audit,trust}); renderTrust(trust);}catch(e){$('metrics').innerHTML='';}}
+      async function refreshAll(){await refreshMetricsOnly();}
+      $('refreshBtn').addEventListener('click',refreshAll);
+
+      function renderTrust(data){const root=$('trust'); const sources=Object.values(data.sources||{}).sort((a,b)=>(b.computed_trust||0)-(a.computed_trust||0)); root.innerHTML=''; const cards=el('div',{class:'trust-cards'},sources.map(s=>{const pct=Math.round((s.computed_trust||0)*100); const color=(s.computed_trust||0)>.8?'rgba(34,197,94,.85)':(s.computed_trust||0)>.6?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)'; return el('div',{class:'card'},[el('div',{style:'display:flex;justify-content:space-between;gap:10px'},[el('strong',{},[s.source_name||'source']),el('strong',{style:'color:var(--accent)'},[`${pct}%`])]),el('div',{class:'meta'},[`${s.dataset||''} • ${s.source_type||''} • ${s.provider||''}`]),el('div',{class:'bar'},[el('div',{style:`width:${pct}%;background:${color}`})]),el('div',{class:'meta',style:'margin-top:10px'},[`base ${s.base_trust} • authority ${s.authority_level} • PageRank ${s.pagerank_reputation} • freshness ${s.freshness_score}`])]);})); root.appendChild(cards);}
+
+      async function loadUsers(){const q=encodeURIComponent($('userSearch').value.trim()); try{const data=await api(`/api/admin/users?search=${q}`); renderUsers(data.users||[]);}catch(e){$('usersList').innerHTML=''; $('usersList').appendChild(el('div',{class:'status bad'},[e.message]));}}
+      function renderUsers(users){const root=$('usersList'); root.innerHTML=''; if(!users.length){root.appendChild(el('div',{class:'status'},['No users found.']));return;} const rows=users.map(u=>({email:u.email,name:u.name,role:u.role,status:u.status,enabled:u.enabled?'yes':'no',action:''})); const t=table(rows); root.appendChild(t); [...root.querySelectorAll('tbody tr')].forEach((tr,i)=>{const td=tr.lastChild; td.textContent=''; const email=users[i].email; const btn=el('button',{class:'danger',type:'button',onclick:async()=>{if(!confirm(`Remove ${email}?`))return; try{await api(`/api/admin/users/${encodeURIComponent(email)}`,{method:'DELETE'}); await loadUsers();}catch(e){alert(e.message);}}},['Remove']); td.appendChild(btn);});}
+      $('userSearch').addEventListener('input',()=>{clearTimeout(window.__userSearchTimer); window.__userSearchTimer=setTimeout(loadUsers,250);});
+      $('createUserForm').addEventListener('submit',async(ev)=>{ev.preventDefault(); $('createUserBtn').disabled=true; try{await api('/api/admin/users',{method:'POST',body:JSON.stringify({email:$('newUserEmail').value.trim(),name:$('newUserName').value.trim()||null,role:$('newUserRole').value,temp_password:$('newUserPassword').value})}); $('newUserEmail').value=''; $('newUserName').value=''; await loadUsers();}catch(e){alert(e.message);}finally{$('createUserBtn').disabled=false;}});
+
+      renderAuth();
     </script>
   </body>
 </html>

@@ -3,113 +3,86 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trust-Aware Data Economy Platform</title>
+    <title>Data Economy Platform</title>
     <style>
-      :root{
-        --bg:#0b1220;--panel:rgba(255,255,255,.06);--panel-strong:rgba(0,0,0,.20);--border:rgba(255,255,255,.10);
-        --text:rgba(255,255,255,.92);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.52);
-        --ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--accent:#60a5fa;--purple:#a78bfa;
-      }
-      *{box-sizing:border-box}
-      body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1100px 550px at 20% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(900px 520px at 80% 10%,rgba(34,197,94,.18),transparent 55%),var(--bg);color:var(--text)}
-      .wrap{max-width:1180px;margin:0 auto;padding:22px}
-      .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:16px}
-      h1{margin:0;font-size:24px;letter-spacing:-.02em}.sub{color:var(--muted);margin-top:6px;font-size:13px;line-height:1.5}.backend-note{color:var(--muted2);font-size:12px;margin-top:6px}
-      .row{display:grid;grid-template-columns:1.05fr .95fr;gap:14px}.card{border:1px solid var(--border);background:var(--panel-strong);border-radius:16px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
-      .card h2{margin:0 0 8px;font-size:15px}.card h3{margin:14px 0 8px;font-size:13px;color:var(--muted)}
-      label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}textarea,select,input{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--text);padding:10px 12px;outline:none}
-      option{background:#101827;color:var(--text)}textarea{min-height:130px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45}
-      .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:8px}.check{display:flex;align-items:center;gap:10px;color:var(--muted);margin-top:10px}.check input{width:auto}
-      button{cursor:pointer;border-radius:12px;padding:10px 12px;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);display:inline-flex;align-items:center;gap:8px}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.65;cursor:not-allowed}.split{display:flex;gap:10px;flex-wrap:wrap}
-      .status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.03);margin-bottom:10px;line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
-      pre{margin:0;max-height:260px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03);font-size:12px}.pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.03);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}
-      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.03);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border)}
-      .trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.meta{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.45}.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.03);border-radius:14px;padding:12px}.metric b{display:block;font-size:18px;margin-top:4px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
-      details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}
-
-      .auth-screen{min-height:100vh;display:grid;place-items:center;padding:24px}
-      .auth-box{width:min(560px,100%);border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(0,0,0,.22));border-radius:24px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.38)}
-      .auth-logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.28);font-weight:800;font-size:20px;margin-bottom:14px}
-      .auth-title{font-size:28px;font-weight:800;letter-spacing:-.04em;margin:0}
-      .auth-text{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}
-      .auth-form{display:grid;gap:10px;margin-top:16px}.auth-form label{margin:0 0 -4px}.auth-form input{font-size:14px}.auth-actions{display:grid;gap:10px;margin-top:14px}.google-btn{width:100%;justify-content:center;font-weight:700;background:rgba(255,255,255,.92);color:#111827;border-color:rgba(255,255,255,.75)}.google-btn:hover{background:#fff}.demo-btn,.cognito-btn{width:100%;justify-content:center;font-weight:700}.cognito-btn{background:rgba(167,139,250,.18);border-color:rgba(167,139,250,.34)}.auth-divider{display:flex;align-items:center;gap:10px;color:var(--muted2);font-size:12px;margin:16px 0 4px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:var(--border);flex:1}.auth-small{color:var(--muted2);font-size:12px;line-height:1.45;margin-top:12px}.auth-msg{margin-top:12px}.user-pill{border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      @media(max-width:1050px){.row{grid-template-columns:1fr}.grid3,.trust-cards,.mini-grid{grid-template-columns:1fr}.top{flex-direction:column}.wrap{padding:14px}}
+      :root{--bg:#0b1220;--panel:rgba(255,255,255,.06);--panel2:rgba(15,23,42,.72);--border:rgba(255,255,255,.11);--text:rgba(255,255,255,.93);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--purple:#a78bfa}
+      *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 550px at 15% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(800px 500px at 85% 12%,rgba(167,139,250,.18),transparent 58%),var(--bg);color:var(--text)}
+      button,input,select,textarea{font:inherit} button{cursor:pointer;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;gap:8px;font-weight:650}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.6;cursor:not-allowed}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.04);border-color:var(--border)}
+      input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:10px 12px;outline:none} option{background:#101827;color:var(--text)} textarea{min-height:128px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45} label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
+      .login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(430px,100%);border:1px solid var(--border);border-radius:26px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(15,23,42,.78));box-shadow:0 28px 80px rgba(0,0,0,.38)}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.small{font-size:12px;color:var(--muted2);line-height:1.45;margin-top:12px}.msg{margin-top:12px}.status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
+      .wrap{max-width:1220px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:24px;letter-spacing:-.03em}.title .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:16px;padding:13px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:20px;margin-top:5px}.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel2);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.hidden{display:none!important}
+      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.04);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}pre{margin:0;max-height:290px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.035);font-size:12px}details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}.trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
+      @media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.admin-grid{grid-template-columns:1fr}.grid3,.trust-cards,.metrics{grid-template-columns:1fr}.wrap{padding:14px}}
     </style>
-    <script type="module" crossorigin src="/assets/index-Cp9D9a9I.js"></script>
+    <script type="module" crossorigin src="/assets/index-B12HWBQN.js"></script>
   </head>
   <body>
-    <section id="authScreen" class="auth-screen">
-      <div class="auth-box">
-        <div class="auth-logo">DE</div>
-        <h1 class="auth-title">Sign in to Data Economy Platform</h1>
-        <div class="auth-text">Use the local email/password login for VM testing. In AWS, use Cognito Hosted UI for real email/password sign-in or Google sign-in.</div>
-        <form id="localLoginForm" class="auth-form">
-          <label for="emailInput">Email</label>
-          <input id="emailInput" type="email" autocomplete="username" value="demo@comp6265.local" />
-          <label for="passwordInput">Password</label>
-          <input id="passwordInput" type="password" autocomplete="current-password" value="demo123" />
-          <button id="emailLoginBtn" class="demo-btn" type="submit">Login with email and password</button>
+    <section id="loginScreen" class="login">
+      <div class="login-card">
+        <div class="logo">DE</div>
+        <h1>Data Economy Platform</h1>
+        <p id="loginIntro">Sign in with an account created by the platform administrator.</p>
+        <form id="loginForm">
+          <label>Email</label><input id="emailInput" type="email" autocomplete="username" placeholder="admin@test.com" required />
+          <label>Password</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="Password" required />
+          <button id="loginBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Sign in</button>
         </form>
-        <div class="auth-small">Local demo users: <b>demo@comp6265.local / demo123</b> and <b>admin@comp6265.local / admin123</b>.</div>
-        <div class="auth-divider">AWS Cognito options</div>
-        <div class="auth-actions">
-          <button id="cognitoLoginBtn" class="cognito-btn" type="button">Sign in / sign up with Cognito email</button>
-          <button id="googleLoginBtn" class="google-btn" type="button">Continue with Google</button>
-          <button id="demoLoginBtn" class="demo-btn" type="button">Continue without password</button>
-        </div>
-        <div id="authMessage" class="auth-msg"></div>
-        <div class="auth-small">For AWS Amplify: enable Cognito username/email sign-in and Google provider, then set the VITE_COGNITO_* environment variables before building.</div>
+        <form id="newPasswordForm" class="hidden">
+          <label>New password</label><input id="newPasswordInput" type="password" autocomplete="new-password" required />
+          <label>Confirm new password</label><input id="confirmPasswordInput" type="password" autocomplete="new-password" required />
+          <button id="setPasswordBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Set password and continue</button>
+          <button id="backToLoginBtn" class="ghost" type="button" style="width:100%;justify-content:center;margin-top:10px">Back to login</button>
+        </form>
+        <div id="authMessage" class="msg"></div>
       </div>
     </section>
 
-    <div id="appShell" class="wrap" style="display:none">
+    <main id="appShell" class="wrap hidden">
       <div class="top">
-        <div>
-          <h1>Trust-Aware Federated Data Economy Platform</h1>
-          <div class="sub">Query CSV, SQLite and API sources with governance policy checks, trust-based conflict resolution, pricing, and audit logging.</div>
-          <div class="backend-note" id="backendNote"></div>
-        </div>
-        <div class="split">
-          <span id="userBadge" class="user-pill" title="Signed-in user">Local demo</span>
-          <button id="logoutBtn" type="button">Logout</button>
-          <button id="refreshBtn" type="button">Check backend</button>
-          <button id="trustBtn" type="button">Load trust</button>
-        </div>
+        <div class="title"><h1>Trust-Aware Federated Data Economy Platform</h1><div class="sub">Query distributed CSV, database and API sources with policy checks, trust-aware conflict resolution, query pricing and audit evidence.</div></div>
+        <div class="actions"><span id="userBadge" class="pill">Signed in</span><button id="adminToggleBtn" class="ghost hidden" type="button">Admin</button><button id="refreshBtn" class="ghost" type="button">Refresh</button><button id="logoutBtn" type="button">Logout</button></div>
       </div>
 
-      <div class="mini-grid" id="metrics"></div>
+      <section id="adminPanel" class="card hidden" style="margin-bottom:14px">
+        <h2>User administration</h2>
+        <div class="meta">Create users with a temporary password. On first login they must set a new password.</div>
+        <div class="admin-grid" style="margin-top:8px">
+          <form id="createUserForm">
+            <label>Email</label><input id="newUserEmail" type="email" placeholder="member@example.com" required />
+            <label>Name</label><input id="newUserName" type="text" placeholder="Member name" />
+            <div class="grid3"><div><label>Role</label><select id="newUserRole"><option>researcher</option><option>analyst</option><option>data_steward</option><option>admin</option></select></div><div style="grid-column:span 2"><label>Temporary password</label><input id="newUserPassword" type="text" value="Temp@12345" required /></div></div>
+            <button id="createUserBtn" type="submit" style="margin-top:12px">Add member</button>
+          </form>
+          <div>
+            <label>Search users</label><input id="userSearch" type="search" placeholder="Search by email, name or role" />
+            <div id="usersList"></div>
+          </div>
+        </div>
+      </section>
 
-      <div class="row" style="margin-top:14px">
+      <section class="metrics" id="metrics"></section>
+
+      <section class="grid">
         <div class="card">
-          <h2>Query Builder</h2>
-          <div class="meta">Choose a scenario, change role/purpose/strategy, then run the federated query.</div>
-          <label>Example queries</label>
-          <select id="exampleSelect"></select>
-          <label>SQL-like query</label>
-          <textarea id="queryInput"></textarea>
+          <h2>Federated Query Console</h2>
+          <label>Example query</label><select id="exampleSelect"></select>
+          <label>SQL-like query</label><textarea id="queryInput"></textarea>
           <div class="grid3">
-            <div><label>Role</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
+            <div><label>Role used for policy check</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
             <div><label>Purpose</label><select id="purposeSelect"><option selected>research</option><option>commercial</option><option>planning</option><option>internal_audit</option></select></div>
             <div><label>Strategy</label><select id="strategySelect"><option selected>balanced</option><option>cheapest</option><option>trust_first</option><option>privacy_first</option></select></div>
           </div>
-          <label class="check"><input id="verifyChk" type="checkbox" /> Force verification across sources</label>
-          <label class="check"><input id="conflictsChk" type="checkbox" checked /> Show all conflicts for demo</label>
-          <div style="margin-top:12px"><button id="runBtn" type="button">Run query</button></div>
+          <label class="check"><input id="verifyChk" type="checkbox" /> Verify across available sources</label>
+          <label class="check"><input id="conflictsChk" type="checkbox" checked /> Include provenance when conflicts exist</label>
+          <button id="runBtn" type="button" style="margin-top:12px">Run query</button>
         </div>
+        <div class="card"><h2>Result</h2><div id="result"><div class="status">Run a query to view result rows, source plan, price and provenance.</div></div></div>
+      </section>
 
-        <div class="card">
-          <h2>Result</h2>
-          <div id="result"><div class="status">Run a query to see policy decision, selected source plan, price, conflicts and result rows.</div></div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px">
-        <h2>Trust visualization</h2>
-        <div class="meta">Computed trust combines base trust, authority, provider PageRank reputation and freshness.</div>
-        <div id="trust"></div>
-      </div>
-      <div class="footer">Docker local test: frontend 5173, backend 8000, mock API 8001. For Amplify, deploy the frontend folder and set VITE_API_BASE_URL to your backend URL.</div>
-    </div>
+      <section class="card" style="margin-top:14px"><h2>Source Trust</h2><div id="trust"><div class="status">Trust scores will load after refresh.</div></div></section>
+      <div class="footer">Prototype for COMP6265 Data Economy coursework</div>
+    </main>
 
   </body>
 </html>

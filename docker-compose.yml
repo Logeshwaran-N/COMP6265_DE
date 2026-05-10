@@ -11,12 +11,18 @@ services:
       dockerfile: Dockerfile.backend
     environment:
       - MOCK_API_BASE_URL=http://mock-api:8001
-      - REQUIRE_AUTH=false
+      - REQUIRE_AUTH=true
+      - AUTH_PROVIDER=${AUTH_PROVIDER:-local}
+      - LOCAL_AUTH_SECRET=${LOCAL_AUTH_SECRET:-local-dev-secret-change-me}
+      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@test.com}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-Admin@12345}
       - COGNITO_REGION=${COGNITO_REGION:-}
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID:-}
       - COGNITO_APP_CLIENT_ID=${COGNITO_APP_CLIENT_ID:-}
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
     depends_on:
       - mock-api
   frontend:
