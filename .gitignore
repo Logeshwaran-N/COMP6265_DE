@@ -18,3 +18,19 @@ frontend/node_modules/
 
 # Keep frontend/dist committed because Docker compose uses the prebuilt frontend.
 # If you edit the frontend, run: cd frontend && npm install && npm run build
+
+# Runtime data generated on deployed server
+backend/data/audit_log.jsonl
+backend/data/users.json
+backend/data/*.db-journal
+backend/data/*.sqlite-journal
+
+# Runtime data generated on deployed server
+backend/data/audit_log.jsonl
+backend/data/users.json
+backend/data/*.db-journal
+backend/data/*.sqlite-journal
+
+# Frontend generated files
+frontend/node_modules/
+frontend/dist/

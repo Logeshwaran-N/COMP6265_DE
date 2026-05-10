@@ -5,7 +5,8 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm install
+            - npm config set registry https://registry.npmjs.org/
+            - npm install --no-audit --no-fund
         build:
           commands:
             - npm run build
