@@ -38,7 +38,6 @@ def pagerank(
 
 
 def freshness_score(days: float) -> float:
-    # Smooth decay: same-day ~= 1, 7 days ~= .5, stale weeks ~= low.
     return round(exp(-max(days, 0) / 10.0), 4)
 
 
@@ -55,9 +54,12 @@ def compute_source_trust() -> Dict[str, Dict[str, Any]]:
         computed = (0.42 * base) + (0.28 * authority) + (0.18 * pr_score) + (0.12 * fresh)
         out[src["source_name"]] = {
             "source_name": src["source_name"],
+            "display_name": src.get("display_name", src["source_name"]),
             "dataset": src["dataset"],
+            "dataset_title": src.get("dataset_title", src["dataset"]),
             "provider": provider,
             "source_type": src["type"],
+            "source_role": src.get("source_role", src["type"]),
             "base_trust": round(base, 4),
             "authority_level": round(authority, 4),
             "pagerank_reputation": round(pr_score, 4),
@@ -65,6 +67,13 @@ def compute_source_trust() -> Dict[str, Dict[str, Any]]:
             "computed_trust": round(min(1.0, max(0.0, computed)), 4),
             "freshness_days": src.get("freshness_days", 0),
             "conflict_risk": src.get("conflict_risk", 0.5),
+            "row_count": src.get("row_count", 0),
+            "access_cost": src.get("access_cost", 0),
+            "row_scan_cost": src.get("row_scan_cost", 0),
+            "api_call_cost": src.get("api_call_cost", 0),
+            "latency_ms": src.get("latency_ms", 0),
+            "best_for": src.get("best_for", []),
+            "trade_off": src.get("trade_off", ""),
             "explanation": "computed_trust = 0.42*base + 0.28*authority + 0.18*provider_PageRank + 0.12*freshness",
         }
     return out
