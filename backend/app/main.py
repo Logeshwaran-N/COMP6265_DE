@@ -208,9 +208,9 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
         actual_sources = [m.get("source") for m in exec_result["metrics"] if m.get("source")]
         if verification:
             message = (
-                "Query executed in verified mode with provenance and conflict details."
+                "Query executed in verified mode with source comparison details."
                 if show_provenance
-                else "Query executed in verified mode. Sources were compared internally; provenance details are hidden."
+                else "Query executed in verified mode. Sources were compared internally; source comparison details are hidden."
             )
         else:
             message = "Query executed in single-source mode. Enable verification to compare available sources."

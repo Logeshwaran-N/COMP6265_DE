@@ -78,7 +78,7 @@
             <div><label>Strategy</label><select id="strategySelect"><option selected>balanced</option><option>cheapest</option><option>trust_first</option><option>privacy_first</option></select></div>
           </div>
           <label class="check"><input id="verifyChk" type="checkbox" /> Verify across available sources</label>
-          <label class="check"><input id="conflictsChk" type="checkbox" disabled /> Show provenance and conflict details</label>
+          <label class="check"><input id="conflictsChk" type="checkbox" disabled /> Show source comparison details</label>
           <div id="executionPreview" class="status" style="margin-top:10px"></div>
           <button id="runBtn" type="button" style="margin-top:12px">Run query</button>
         </div>
@@ -185,7 +185,7 @@
       function withoutVerification(q){return String(q||'').replace(/\s+WITH\s+VERIFICATION\s*;?\s*$/i,'').trim();}
       function hasVerificationHint(q){return /\s+WITH\s+VERIFICATION\s*;?\s*$/i.test(String(q||''));}
       function executableQuery(){const base=withoutVerification($('queryInput').value); return $('verifyChk').checked && base ? `${base} WITH VERIFICATION` : base;}
-      function updateVerificationControls(){const verified=$('verifyChk').checked; $('conflictsChk').disabled=!verified; if(!verified)$('conflictsChk').checked=false; const q=executableQuery(); $('executionPreview').innerHTML=''; $('executionPreview').appendChild(el('div',{},[verified?'Verified mode: all compatible sources will be queried.':'Single-source mode: only the selected source will be queried.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[`Query that will be executed: ${q||'—'}`]));}
+      function updateVerificationControls(){const verified=$('verifyChk').checked; $('conflictsChk').disabled=!verified; $('strategySelect').disabled=verified; $('strategySelect').title=verified?'Strategy is used only in single-source mode. Verified mode checks all compatible sources and resolves by trust.':''; if(!verified)$('conflictsChk').checked=false; const q=executableQuery(); $('executionPreview').innerHTML=''; $('executionPreview').appendChild(el('div',{},[verified?'Verified mode: all compatible sources will be queried and the final answer will be resolved by trust.':'Single-source mode: the selected strategy chooses one source to query.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[verified?'Strategy is disabled because verification checks CSV, DB and API together.':'Strategy is active in single-source mode.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[`Query that will be executed: ${q||'—'}`]));}
       function applyVerificationToInput(){const q=executableQuery(); $('queryInput').value=q; updateVerificationControls();}
       function syncVerificationFromInput(){const has=hasVerificationHint($('queryInput').value); if($('verifyChk').checked!==has)$('verifyChk').checked=has; updateVerificationControls();}
       function loadExample(i){const e=EXAMPLES[i]; $('queryInput').value=e.query; if(!$('roleSelect').disabled)$('roleSelect').value=e.role; $('purposeSelect').value=e.purpose; $('strategySelect').value=e.strategy; $('verifyChk').checked=e.verify; $('conflictsChk').checked=!!e.provenance; updateVerificationControls();}
@@ -197,7 +197,64 @@
 
       function table(rows, minWidth=650){ if(!rows?.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(rows[0]); return el('div',{class:'table-wrap'},[el('table',{style:`min-width:${minWidth}px`},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[c])))]),el('tbody',{},rows.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
       function renderMetrics(data){const items=[['Datasets',Object.keys(data.catalogue||{}).length],['Sources',(data.sources||[]).length],['Trust scores',Object.keys(data.trust?.sources||{}).length],['Audit events',(data.audit||[]).length]]; $('metrics').innerHTML=''; items.forEach(([l,v])=>$('metrics').appendChild(el('div',{class:'metric'},[el('span',{},[l]),el('b',{},[String(v)])])));}
-      function renderResult(r){const root=$('result'); root.innerHTML=''; root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`])); if(r.selected_plan?.plan_id){const p=r.selected_plan; const m=r.execution_metrics||{}; root.appendChild(el('div',{style:'margin-top:10px'},[el('div',{},[`Selected plan: ${p.plan_id}`]),el('div',{},[el('span',{class:'tag'},[`mode: ${p.mode}`]),el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),el('span',{class:'tag'},[`execution cost: ${p.estimated_execution_cost}`]),el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`]),el('span',{class:'tag'},[`sources queried: ${m.actual_source_count??p.sources?.length??0}`])]),el('div',{class:'meta'},[p.explanation||''])])); if(m.internal_conflict_count>0 && !m.visible_provenance){root.appendChild(el('div',{class:'status warn',style:'margin-top:10px'},[`The engine compared sources and found ${m.internal_conflict_count} conflict(s). Provenance details are hidden because the provenance checkbox was not selected.`]));}} if(r.pricing?.total_user_price!=null){root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));} if(r.result_rows?.length)root.appendChild(table(r.result_rows)); if(r.conflicts?.length)root.appendChild(el('details',{},[el('summary',{},[`Provenance and conflicts (${r.conflicts.length})`]),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])); if(r.candidate_plans?.length)root.appendChild(el('details',{},[el('summary',{},[`Estimated alternative plans (${r.candidate_plans.length})`]),el('div',{class:'meta',style:'margin:8px 0'},['These are catalogue-based estimates. In single-source mode, only the selected plan is executed.']),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])); if(r.policy_decision && Object.keys(r.policy_decision).length)root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));}
+      function comparisonTable(items){
+        const rows=[];
+        (items||[]).forEach(c=>{
+          (c.alternatives||[]).forEach(a=>rows.push({item:c.entity_value,column:c.column,source:a.source,provider:a.provider,value:a.value,score:a.source_score,selected:a.selected?'yes':'no'}));
+        });
+        return rows.length?table(rows,820):el('div',{class:'status'},['No source comparison rows available.']);
+      }
+      function planSummaryTable(plans){
+        const rows=(plans||[]).map(p=>({plan:p.plan_id,mode:p.mode,sources:(p.sources||[]).join(', '),rows_scanned:p.estimated_rows_scanned,latency_ms:p.estimated_latency_ms,execution_cost:p.estimated_execution_cost,trust:p.mean_trust,score:p.optimiser_score}));
+        return rows.length?table(rows,980):el('div',{class:'status'},['No plan estimates available.']);
+      }
+      function renderResult(r){
+        const root=$('result'); root.innerHTML='';
+        root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`]));
+        if(r.selected_plan?.plan_id){
+          const p=r.selected_plan; const m=r.execution_metrics||{};
+          root.appendChild(el('div',{style:'margin-top:10px'},[
+            el('div',{},[`Selected plan: ${p.plan_id}`]),
+            el('div',{},[
+              el('span',{class:'tag'},[`mode: ${p.mode}`]),
+              el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),
+              el('span',{class:'tag'},[`execution cost: ${p.estimated_execution_cost}`]),
+              el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`]),
+              el('span',{class:'tag'},[`sources queried: ${m.actual_source_count??p.sources?.length??0}`])
+            ]),
+            el('div',{class:'meta'},[p.explanation||''])
+          ]));
+          if(m.internal_conflict_count>0 && !m.visible_provenance){
+            root.appendChild(el('div',{class:'status warn',style:'margin-top:10px'},[`Sources were compared internally and ${m.internal_conflict_count} source variation(s) were found. Detailed source comparison is hidden because the source-comparison checkbox was not selected.`]));
+          }
+        }
+        if(r.pricing?.total_user_price!=null){
+          root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));
+        }
+        if(r.result_rows?.length)root.appendChild(table(r.result_rows));
+        if(r.conflicts?.length){
+          const severe=r.conflicts.filter(c=>c.variation_type==='conflict').length;
+          const minor=r.conflicts.length-severe;
+          const label=severe?`Conflict detected (${severe})`:`Minor source variation (${minor})`;
+          root.appendChild(el('details',{open:true},[
+            el('summary',{},[`Source comparison - ${label}`]),
+            el('div',{class:'meta',style:'margin:8px 0'},['Different sources returned slightly different values for the same item. The selected value uses the highest trust/authority score.']),
+            comparisonTable(r.conflicts),
+            el('details',{},[el('summary',{},['View source-comparison JSON']),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])
+          ]));
+        }
+        if(r.candidate_plans?.length){
+          root.appendChild(el('details',{},[
+            el('summary',{},[`Advanced optimiser evidence (${r.candidate_plans.length})`]),
+            el('div',{class:'meta',style:'margin:8px 0'},['These are catalogue-based estimates. In single-source mode only the selected source is executed; in verified mode all compatible sources are executed.']),
+            planSummaryTable(r.candidate_plans),
+            el('details',{},[el('summary',{},['View raw optimiser JSON']),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])
+          ]));
+        }
+        if(r.policy_decision && Object.keys(r.policy_decision).length){
+          root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));
+        }
+      }
       async function runQuery(){ $('runBtn').disabled=true; $('runBtn').textContent='Running...'; try{const verified=$('verifyChk').checked; const payload={query:executableQuery(), role:$('roleSelect').value, purpose:$('purposeSelect').value, strategy:$('strategySelect').value, verification:verified, show_all_conflicts:verified && $('conflictsChk').checked}; renderResult(await api('/api/query',{method:'POST',body:JSON.stringify(payload)})); await refreshMetricsOnly();}catch(e){renderResult({ok:false,message:e.message});}finally{$('runBtn').disabled=false;$('runBtn').textContent='Run query';}}
       $('runBtn').addEventListener('click',runQuery);
 

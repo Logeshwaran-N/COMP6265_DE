@@ -46,7 +46,15 @@ def estimate_source(dataset_name: str, source_name: str, query: ParsedQuery, sel
     api_calls = 1 if source["type"] == "api" else 0
     latency = float(source["latency_ms"]) + (rows_scanned * 0.35) + (api_calls * 15)
     access_cost = float(source["access_cost"])
-    row_cost = rows_scanned * float(source["row_scan_cost"])
+    base_row_cost = rows_scanned * float(source["row_scan_cost"])
+    # Monetary execution cost and latency are separated deliberately.
+    # File/CSV sources can be slow because they scan rows in Python, but the access tier is cheap.
+    if source["type"] == "csv":
+        row_cost = base_row_cost * 0.10
+    elif source["type"] == "api":
+        row_cost = base_row_cost
+    else:
+        row_cost = base_row_cost
     api_cost = api_calls * float(source["api_call_cost"])
     projection_penalty = max(0, len(selected_cols) - 1) * 0.03
     exec_cost = access_cost + row_cost + api_cost + projection_penalty

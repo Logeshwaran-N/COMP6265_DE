@@ -45,24 +45,22 @@ def _preferred_single_source_sort_key(strategy: str, plan: CandidatePlan) -> tup
     return (balanced_rank, plan.optimiser_score, estimate.estimated_execution_cost)
 
 
+def _source_label(source_type: str) -> str:
+    return {"csv": "CSV/file", "sqlite": "SQLite DB", "api": "mock API"}.get(source_type, "source")
+
+
 def _single_source_explanation(strategy: str, source_name: str) -> str:
     source_type = next((src.get("type", "source") for ds in CATALOGUE.values() for name, src in ds["sources"].items() if name == source_name), "source")
+    label = _source_label(source_type)
     if strategy == "cheapest":
-        return (
-            f"Use only {source_name}. Cheapest strategy selects the lowest access-price source tier. "
-            f"The {source_type} source is the lowest-cost data product, even if its internal execution may scan more rows."
-        )
+        if source_type == "csv":
+            return f"Use only {source_name}. Cheapest strategy chooses the low access-price {label} source. It may scan more rows, but its data-access tier is cheapest."
+        return f"Use only {source_name}. Cheapest strategy selected the lowest available access-price source for this query."
     if strategy == "trust_first":
-        return (
-            f"Use only {source_name}. Trust-first strategy prioritises source trust and freshness over lower execution cost."
-        )
+        return f"Use only {source_name}. Trust-first strategy prioritises source trust and freshness over price or latency."
     if strategy == "privacy_first":
-        return (
-            f"Use only {source_name}. Privacy-first strategy favours controlled sources and avoids unnecessary external API exposure."
-        )
-    return (
-        f"Use only {source_name}. Balanced strategy chooses the best trade-off between execution cost, trust, freshness and risk."
-    )
+        return f"Use only {source_name}. Privacy-first strategy favours controlled sources and avoids unnecessary external API exposure."
+    return f"Use only {source_name}. Balanced strategy chooses the best trade-off between execution cost, trust, freshness and risk."
 
 
 def _score(strategy: str, estimates: List[SourcePlanEstimate], verified: bool, join: bool = False) -> float:
