@@ -34,7 +34,7 @@ class QueryRequest(BaseModel):
     purpose: PurposeEnum = Field(PurposeEnum.research, description="Query purpose")
     strategy: StrategyEnum = Field(StrategyEnum.balanced, description="Optimisation strategy")
     verification: bool = Field(False, description="Force multi-source verification")
-    show_all_conflicts: bool = Field(True, description="Return conflict alternatives when provenance is requested")
+    show_all_conflicts: bool = Field(False, description="Return provenance and conflict details when verification is requested")
 
     @field_validator("query")
     @classmethod

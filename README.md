@@ -94,6 +94,20 @@ fx_rates:    12 current currency pairs
 fx_history:  21,912 historical observations
 ```
 
+
+## Query modes and strategies
+
+Standard mode executes one selected source only. Verification mode executes all compatible sources and can show provenance/conflict details.
+
+```text
+cheapest      -> lowest access-price source tier, usually CSV/file
+balanced      -> best trade-off source, usually SQLite reference data
+trust_first   -> highest trust/freshness tier, usually mock API
+privacy_first -> controlled source with minimal external exposure, usually SQLite
+```
+
+The UI keeps `WITH VERIFICATION` and the verification checkbox in sync. Provenance details are shown only when the provenance checkbox is selected.
+
 ## Important queries
 
 Current GBP/INR verification:

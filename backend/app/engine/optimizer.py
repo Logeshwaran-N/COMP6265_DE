@@ -19,6 +19,52 @@ def _can_source_answer(dataset_name: str, source_name: str, columns: List[str]) 
     return all(col in mapping for col in columns)
 
 
+def _source_type_rank(source_type: str) -> int:
+    return {"csv": 1, "sqlite": 2, "api": 3}.get(source_type, 9)
+
+
+def _preferred_single_source_sort_key(strategy: str, plan: CandidatePlan) -> tuple:
+    if not plan.source_estimates:
+        return (99, plan.optimiser_score)
+    estimate = plan.source_estimates[0]
+    source = CATALOGUE[estimate.dataset]["sources"][estimate.source_name]
+    source_type = source.get("type", "")
+    access_cost = float(source.get("access_cost", 1.0))
+    risk = float(source.get("conflict_risk", estimate.conflict_risk))
+
+    if strategy == "cheapest":
+        return (access_cost, _source_type_rank(source_type), estimate.estimated_execution_cost)
+    if strategy == "trust_first":
+        trust_rank = {"api": 1, "sqlite": 2, "csv": 3}.get(source_type, 9)
+        return (trust_rank, -estimate.trust_score, -estimate.freshness_score, risk, estimate.estimated_execution_cost)
+    if strategy == "privacy_first":
+        privacy_rank = {"sqlite": 1, "csv": 2, "api": 3}.get(source_type, 9)
+        return (privacy_rank, risk, -estimate.trust_score, estimate.estimated_execution_cost)
+    # Balanced: prefer structured reference data where available, then use the general optimiser score.
+    balanced_rank = {"sqlite": 1, "api": 2, "csv": 3}.get(source_type, 9)
+    return (balanced_rank, plan.optimiser_score, estimate.estimated_execution_cost)
+
+
+def _single_source_explanation(strategy: str, source_name: str) -> str:
+    source_type = next((src.get("type", "source") for ds in CATALOGUE.values() for name, src in ds["sources"].items() if name == source_name), "source")
+    if strategy == "cheapest":
+        return (
+            f"Use only {source_name}. Cheapest strategy selects the lowest access-price source tier. "
+            f"The {source_type} source is the lowest-cost data product, even if its internal execution may scan more rows."
+        )
+    if strategy == "trust_first":
+        return (
+            f"Use only {source_name}. Trust-first strategy prioritises source trust and freshness over lower execution cost."
+        )
+    if strategy == "privacy_first":
+        return (
+            f"Use only {source_name}. Privacy-first strategy favours controlled sources and avoids unnecessary external API exposure."
+        )
+    return (
+        f"Use only {source_name}. Balanced strategy chooses the best trade-off between execution cost, trust, freshness and risk."
+    )
+
+
 def _score(strategy: str, estimates: List[SourcePlanEstimate], verified: bool, join: bool = False) -> float:
     cost = sum(e.estimated_execution_cost for e in estimates)
     latency = max((e.estimated_latency_ms for e in estimates), default=0.0) if verified else sum(e.estimated_latency_ms for e in estimates)
@@ -107,13 +153,10 @@ def _build_single_dataset_plans(query: ParsedQuery, strategy: str, verification:
             strategy=strategy,
             datasets=[dataset_name],
             estimates=[estimate],
-            explanation=(
-                f"Use only {source_name}. Optimiser applies selection pushdown where possible. "
-                "This is cheap but may miss disagreement in duplicated sources."
-            ),
+            explanation=_single_source_explanation(strategy, source_name),
             complexity="Candidate enumeration O(S); execution O(rows_scanned) for selected source.",
         ))
-    if len(sources) > 1:
+    if verification and len(sources) > 1:
         estimates = [estimate_source(dataset_name, src, query, selected) for src in sources]
         candidates.append(_make_plan(
             plan_id="verified::" + "+".join(sources),
@@ -122,16 +165,13 @@ def _build_single_dataset_plans(query: ParsedQuery, strategy: str, verification:
             datasets=[dataset_name],
             estimates=estimates,
             explanation=(
-                "Query all compatible sources, then run provenance-aware conflict detection and trust-based resolution. "
-                "This costs more but improves confidence."
+                "Verified mode queries all compatible sources, compares returned values and resolves conflicts by source trust."
             ),
             complexity="Verification O(S*rows + K*V), where S=sources, K=entity keys, V=values per key.",
-            warnings=[] if verification else ["This plan is optional unless verified mode is selected."],
         ))
     if verification:
-        # In verified mode keep all candidates for explanation, but selected plan will be verified.
         return sorted(candidates, key=lambda p: (p.mode != "verified", p.optimiser_score))
-    return sorted(candidates, key=lambda p: p.optimiser_score)
+    return sorted(candidates, key=lambda p: _preferred_single_source_sort_key(strategy, p))
 
 
 def _build_join_plans(query: ParsedQuery, strategy: str, verification: bool) -> List[CandidatePlan]:

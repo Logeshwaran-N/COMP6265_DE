@@ -151,7 +151,7 @@ def algorithm(user=Depends(get_current_user)):
             "Map virtual columns to physical source schemas",
             "Evaluate ODRL-inspired role/purpose/column constraints",
             "Enumerate source plans and estimate cardinality/cost/latency/trust",
-            "Choose plan by strategy: balanced, cheapest, trust_first, or privacy_first",
+            "Choose one source by strategy, or all sources when verification is requested",
             "Execute with selection pushdown where source supports it",
             "Detect duplicated/conflicting entity values in verified mode",
             "Resolve conflicts using computed trust + authority and return provenance",
@@ -160,8 +160,10 @@ def algorithm(user=Depends(get_current_user)):
         ],
         "cost_model": {
             "estimated_execution_cost": "access_cost + rows_scanned*row_scan_cost + api_calls*api_call_cost + projection_penalty",
-            "score_balanced": "cost + 0.004*latency + 0.25*api_calls + 0.9*conflict_risk - 1.5*trust - 0.4*freshness",
-            "score_trust_first": "0.65*cost + 0.003*latency + 1.15*risk - 3*trust - 0.8*freshness",
+            "strategy_cheapest": "select the lowest access-price source tier, often CSV/file",
+            "strategy_balanced": "select the best trade-off source, usually the structured reference DB",
+            "strategy_trust_first": "select the highest trust/freshness source, often API",
+            "strategy_privacy_first": "select a controlled source and avoid unnecessary external API calls",
         },
         "pricing_model": {
             "separation": "Internal execution cost is for optimiser decisions; user-facing query price is data-value/access pricing.",
@@ -200,7 +202,18 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
             audit_id = write_audit({**audit_base, "allowed": False, "reason": policy["reason"]})
             return QueryResponse(ok=False, message="Policy denied the query.", parsed_query=parsed.to_dict(), policy_decision=policy, audit_id=audit_id)
         selected_plan, candidates = choose_plan(parsed, req.strategy, verification)
-        exec_result = execute_plan(parsed, selected_plan, effective_role, req.purpose, req.show_all_conflicts)
+        show_provenance = bool(req.show_all_conflicts and verification)
+        exec_result = execute_plan(parsed, selected_plan, effective_role, req.purpose, show_provenance)
+        visible_conflicts = exec_result["conflicts"] if show_provenance else []
+        actual_sources = [m.get("source") for m in exec_result["metrics"] if m.get("source")]
+        if verification:
+            message = (
+                "Query executed in verified mode with provenance and conflict details."
+                if show_provenance
+                else "Query executed in verified mode. Sources were compared internally; provenance details are hidden."
+            )
+        else:
+            message = "Query executed in single-source mode. Enable verification to compare available sources."
         audit_id = write_audit({
             **audit_base,
             "allowed": True,
@@ -208,18 +221,26 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
             "price": exec_result["pricing"].get("total_user_price"),
             "conflict_count": len(exec_result["conflicts"]),
             "row_count": len(exec_result["result_rows"]),
+            "actual_sources": actual_sources,
+            "show_provenance": show_provenance,
         })
         return QueryResponse(
             ok=True,
-            message="Query executed with governance, optimisation, pricing and provenance.",
+            message=message,
             parsed_query=parsed.to_dict(),
             policy_decision=policy,
             selected_plan=selected_plan.to_dict(),
             candidate_plans=[p.to_dict() for p in candidates],
             result_rows=exec_result["result_rows"],
-            conflicts=exec_result["conflicts"],
+            conflicts=visible_conflicts,
             pricing=exec_result["pricing"],
-            execution_metrics={"actual_source_metrics": exec_result["metrics"]},
+            execution_metrics={
+                "actual_source_metrics": exec_result["metrics"],
+                "actual_sources": actual_sources,
+                "actual_source_count": len(actual_sources),
+                "visible_provenance": show_provenance,
+                "internal_conflict_count": len(exec_result["conflicts"]),
+            },
             audit_id=audit_id,
         )
     except (InvalidQueryError, QueryError, ValueError) as exc:
