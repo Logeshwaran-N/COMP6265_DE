@@ -300,7 +300,7 @@ def cognito_login(email: str, password: str) -> dict[str, Any]:
         if resp.get("ChallengeName") == "NEW_PASSWORD_REQUIRED":
             return {"ok": True, "challenge": "NEW_PASSWORD_REQUIRED", "session": resp["Session"], "user": {"email": email, "role": "researcher", "status": "FORCE_CHANGE_PASSWORD", "provider": "cognito"}}
         auth = resp.get("AuthenticationResult", {})
-        claims = _verify_cognito_token(auth.get("AccessToken") or auth.get("IdToken"))
+        claims = _verify_cognito_token(auth.get("IdToken") or auth.get("AccessToken"))
         return {"ok": True, "access_token": auth.get("AccessToken"), "id_token": auth.get("IdToken"), "token_type": "Bearer", "user": _cognito_user_from_claims(claims)}
     except HTTPException:
         raise
@@ -318,7 +318,7 @@ def complete_cognito_new_password(email: str, session: str, new_password: str) -
             ChallengeResponses={"USERNAME": email, "NEW_PASSWORD": new_password},
         )
         auth = resp.get("AuthenticationResult", {})
-        claims = _verify_cognito_token(auth.get("AccessToken") or auth.get("IdToken"))
+        claims = _verify_cognito_token(auth.get("IdToken") or auth.get("AccessToken"))
         return {"ok": True, "access_token": auth.get("AccessToken"), "id_token": auth.get("IdToken"), "token_type": "Bearer", "user": _cognito_user_from_claims(claims)}
     except Exception as exc:
         raise HTTPException(status_code=401, detail=f"Could not set new password: {exc}") from exc
@@ -366,22 +366,47 @@ def _cognito_user_from_claims(claims: dict[str, Any]) -> dict[str, Any]:
 def _verify_cognito_token(token: str | None) -> dict[str, Any]:
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+
     settings_c = _cognito_settings()
     if not settings_c["issuer"] or not settings_c["app_client_id"]:
         raise HTTPException(status_code=500, detail="Cognito auth is not fully configured")
+
     try:
         import jwt
-        from jwt import InvalidAudienceError, InvalidTokenError
+        from jwt import InvalidTokenError
+
         signing_key = _jwks_client().get_signing_key_from_jwt(token).key
-        try:
-            claims = jwt.decode(token, signing_key, algorithms=["RS256"], audience=settings_c["app_client_id"], issuer=settings_c["issuer"])
-        except InvalidAudienceError:
-            claims = jwt.decode(token, signing_key, algorithms=["RS256"], issuer=settings_c["issuer"], options={"verify_aud": False})
+
+        # Cognito ID token has an audience claim named "aud".
+        # Cognito access token does not have "aud"; it has "client_id".
+        # The frontend sends the access token in Authorization headers, so both
+        # token types must be verified correctly.
+        unverified_claims = jwt.decode(token, options={"verify_signature": False})
+        token_use = unverified_claims.get("token_use")
+
+        if token_use == "id":
+            claims = jwt.decode(
+                token,
+                signing_key,
+                algorithms=["RS256"],
+                audience=settings_c["app_client_id"],
+                issuer=settings_c["issuer"],
+            )
+        elif token_use == "access":
+            claims = jwt.decode(
+                token,
+                signing_key,
+                algorithms=["RS256"],
+                issuer=settings_c["issuer"],
+                options={"verify_aud": False},
+            )
             if claims.get("client_id") != settings_c["app_client_id"]:
                 raise HTTPException(status_code=401, detail="Token client_id does not match this app client")
-        if claims.get("token_use") not in {"access", "id"}:
+        else:
             raise HTTPException(status_code=401, detail="Unsupported Cognito token type")
+
         return claims
+
     except HTTPException:
         raise
     except InvalidTokenError as exc:  # type: ignore[name-defined]
