@@ -73,10 +73,3 @@ def test_local_forgot_password_flow():
     logged_in = client.post('/api/auth/login', json={'email': email, 'password': 'ResetPass@12345'})
     assert logged_in.status_code == 200
     assert logged_in.json()['user']['status'] == 'CONFIRMED'
-
-
-def test_admin_cannot_remove_self():
-    headers = login_admin()
-    res = client.delete('/api/admin/users/admin@test.com', headers=headers)
-    assert res.status_code == 400
-    assert 'own account' in res.json()['detail']

@@ -1,56 +1,44 @@
 # Trust-Aware Federated Data Economy Platform
 
-COMP6265 Data Economy prototype with:
+COMP6265 prototype for querying distributed data products with governance, trust, pricing and audit evidence.
 
-- federated querying over CSV, SQLite and API-style sources
-- trust-aware conflict resolution and source provenance
-- query pricing and execution-cost estimation
-- ODRL-inspired governance checks
-- audit logging
-- admin-managed email/password users
-- local auth for development and Cognito auth for AWS deployment
+## What the system demonstrates
 
-## Current branch target
+- Federated querying over CSV, SQLite and mock API sources
+- Current FX rate verification across multiple providers
+- Large FX history access for analytics / bot-training style queries
+- Trust-aware conflict resolution and source provenance
+- Query pricing and execution-cost estimation
+- ODRL-inspired role, purpose and column policy checks
+- Audit logging
+- Admin-managed users with local auth or Cognito auth
 
-This version is prepared for the `logesh-amplify` branch:
+## Current AWS target
 
 ```text
 Frontend: AWS Amplify
 Auth: Amazon Cognito
-Backend: AWS App Runner
+Backend: EC2 Docker service
+HTTPS API: API Gateway proxy to EC2 backend
+Data: packaged CSV + SQLite + mock API service
 ```
 
-The EC2/Docker setup still works as a fallback.
+The project avoids live third-party APIs in this version so the demonstration is stable and repeatable.
 
 ## Local login
 
-There is no public signup page. Users are created by the admin.
-
-Local test admin:
+There is no public signup page. Users are created by the administrator.
 
 ```text
 admin@test.com / Admin@12345
 ```
 
-Admin abilities:
-
-- run queries like a normal user
-- add a member with email + temporary password
-- list/search users
-- remove users
-
-When a member signs in with a temporary password, the app asks them to set a new password before entering the platform.
+Admin users can query data, add members, search users, reset passwords and remove members. The current admin account cannot remove itself.
 
 ## Run locally with Docker
 
 ```bash
 docker compose up --build -d
-```
-
-For older Docker Compose:
-
-```bash
-docker-compose up --build -d
 ```
 
 Open:
@@ -59,139 +47,78 @@ Open:
 http://localhost:5173
 ```
 
-Backend:
+Backend health:
 
 ```text
 http://localhost:8000/api/health
 ```
 
-If using a VM from Windows, tunnel both ports:
-
-```powershell
-ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 logesh@YOUR_VM_IP
-```
-
-## Local auth storage
-
-Local users are stored in:
-
-```text
-backend/data/users.json
-```
-
-Docker Compose mounts `backend/data` into the backend container, so users created in local testing survive container restarts.
-
-To reset local users:
-
-```bash
-docker compose down
-rm -f backend/data/users.json backend/data/audit_log.jsonl
-docker compose up --build -d
-```
-
-The default admin will be recreated on next backend start.
-
-## AWS deployment
-
-Read:
-
-```text
-docs/AWS_DEPLOYMENT.md
-docs/COGNITO_SETUP_NOTES.md
-```
-
-Quick AWS target:
-
-```text
-Amplify branch: logesh-amplify
-Amplify env: VITE_API_BASE_URL=https://YOUR-APP-RUNNER-URL
-App Runner source directory: backend
-App Runner env: AUTH_PROVIDER=cognito, Cognito IDs, FRONTEND_ORIGINS
-```
-
 ## Cognito mode
 
-Set backend environment variables:
+Backend environment variables:
 
 ```text
 REQUIRE_AUTH=true
 AUTH_PROVIDER=cognito
-COGNITO_REGION=us-east-1
+COGNITO_REGION=eu-west-2
 COGNITO_USER_POOL_ID=YOUR_USER_POOL_ID
 COGNITO_APP_CLIENT_ID=YOUR_APP_CLIENT_ID
 COGNITO_ADMIN_GROUP=admin
 COGNITO_SUPPRESS_INVITE=true
-MOCK_API_BASE_URL=internal
+MOCK_API_BASE_URL=http://mock-api:8001
 FRONTEND_ORIGINS=https://YOUR-AMPLIFY-URL
 ```
 
-The backend verifies Cognito JWT tokens and performs admin user operations through Cognito admin APIs.
+Frontend environment variable in Amplify:
+
+```text
+VITE_API_BASE_URL=https://YOUR-API-GATEWAY-URL
+```
 
 ## Data sources
 
-Current prototype sources:
+```text
+CSV current FX source       backend/data/fx_rates.csv
+CSV historical FX source    backend/data/fx_history.csv
+SQLite reference source     backend/data/warehouse.db
+Mock API source             mock_api service / in-process fallback data
+```
+
+FX data size in this version:
 
 ```text
-CSV files      backend/data/fruits.csv, backend/data/fx_rates.csv
-SQLite DB      backend/data/warehouse.db
-API source     mock_api service locally; in-process fallback in App Runner
+fx_rates:    12 current currency pairs
+fx_history:  21,912 historical observations
 ```
 
-For this coursework dataset size, packaged CSV/SQLite is enough for the first cloud model. S3 can be added later if you want a proper cloud data-lake source.
+## Important queries
 
-## Frontend build
-
-Docker serves the already-built `frontend/dist` folder. If you change `frontend/index.html`, rebuild:
-
-```bash
-cd frontend
-npm install
-npm run build
-cd ..
-docker compose up --build -d
-```
-
-Amplify builds automatically using `amplify.yml`.
-
-## Tests
-
-```bash
-PYTHONPATH=backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest backend/tests -q
-```
-
-Expected currently:
-
-```text
-6 passed
-```
-
-## Important demo queries
+Current GBP/INR verification:
 
 ```sql
 SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
 ```
+
+Historical FX query:
+
+```sql
+SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100
+```
+
+Fruit conflict resolution:
 
 ```sql
 SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
 ```
 
+PII policy denial:
+
 ```sql
 SELECT customer_email FROM orders WHERE order_id = 'O-1002'
 ```
 
-## Phase C1 FX expansion
+## Tests
 
-This version adds a finance-focused expansion without changing the overall deployment architecture.
-
-- `fx_rates` now has four source styles: low-cost CSV, official database snapshot, mock API feed, and a Frankfurter live FX connector.
-- `fx_history` is generated as a larger historical dataset for analytics, forecasting and bot/model-training style queries.
-- Live FX calls are cached in `backend/data/live_fx_cache.json` to reduce external calls and keep demonstrations reliable.
-- If the live API is unavailable, the connector falls back to cached or internal seed data and records the status in execution metrics.
-- The trust page groups sources by dataset so a marker can compare sources inside one category from left to right: CSV/file, DB/reference, API/live.
-
-Example queries:
-
-```sql
-SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
-SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' LIMIT 100
+```bash
+PYTHONPATH=backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest backend/tests -q
 ```

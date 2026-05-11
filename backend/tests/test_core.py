@@ -33,7 +33,7 @@ def test_verified_fx_conflict():
     assert res["ok"] is True
     assert res["selected_plan"]["mode"] == "verified"
     assert len(res["conflicts"]) >= 1
-    assert res["result_rows"][0]["_chosen_source"] in {"fx_db", "fx_api", "fx_live_api"}
+    assert res["result_rows"][0]["_chosen_source"] in {"fx_db", "fx_api"}
 
 
 def test_trust_scores_exist():
@@ -42,18 +42,14 @@ def test_trust_scores_exist():
     assert trust["fx_db"]["computed_trust"] > trust["fx_csv"]["computed_trust"]
 
 
-def test_fx_history_bulk_query():
-    res = client.post("/api/query", json={
-        "query": "SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' LIMIT 50",
-        "role": "researcher",
-        "purpose": "research",
-        "strategy": "balanced"
+def test_fx_history_large_query_ordered():
+    res = client.post('/api/query', json={
+        'query': "SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100",
+        'role': 'researcher',
+        'purpose': 'research',
+        'strategy': 'balanced'
     }).json()
-    assert res["ok"] is True
-    assert res["selected_plan"]["datasets"] == ["fx_history"]
-    assert len(res["result_rows"]) > 0
-    assert res["pricing"].get("bulk_history_fee", 0) >= 0
-
-def test_fx_live_source_in_catalogue():
-    from app.catalogue import CATALOGUE
-    assert "fx_live_api" in CATALOGUE["fx_rates"]["sources"]
+    assert res['ok'] is True
+    assert len(res['result_rows']) == 100
+    assert res['result_rows'][0]['date'] >= res['result_rows'][-1]['date']
+    assert res['pricing']['row_tier_fee'] >= 0.75

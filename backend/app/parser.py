@@ -10,6 +10,7 @@ _QUERY_RE = re.compile(
     r"^\s*SELECT\s+(?P<select>.+?)\s+FROM\s+(?P<dataset>[a-zA-Z_][\w]*)"
     r"(?:\s+JOIN\s+(?P<join_dataset>[a-zA-Z_][\w]*)\s+ON\s+(?P<join_left>[\w\.]+)\s*=\s*(?P<join_right>[\w\.]+))?"
     r"(?:\s+WHERE\s+(?P<where>.+?))?"
+    r"(?:\s+ORDER\s+BY\s+(?P<order_by>[\w\.]+)(?:\s+(?P<order_dir>ASC|DESC))?)?"
     r"(?:\s+LIMIT\s+(?P<limit>\d+))?"
     r"\s*$",
     re.IGNORECASE,
@@ -53,7 +54,7 @@ def parse_query(raw_query: str) -> ParsedQuery:
     where_obj: Optional[ParsedPredicate] = None
     where_raw = match.group("where")
     if where_raw:
-        # Avoid swallowing LIMIT if regex encountered odd spacing.
+        where_raw = re.sub(r"\s+ORDER\s+BY\s+[\w\.]+(?:\s+(?:ASC|DESC))?\s*$", "", where_raw, flags=re.IGNORECASE)
         where_raw = re.sub(r"\s+LIMIT\s+\d+\s*$", "", where_raw, flags=re.IGNORECASE)
         cond = _CONDITION_RE.match(where_raw)
         if not cond:
@@ -74,6 +75,8 @@ def parse_query(raw_query: str) -> ParsedQuery:
         )
 
     limit = int(match.group("limit")) if match.group("limit") else None
+    order_by = match.group("order_by").split(".")[-1] if match.group("order_by") else None
+    order_dir = (match.group("order_dir") or "asc").lower()
     return ParsedQuery(
         raw=raw_query,
         select=select,
@@ -84,4 +87,6 @@ def parse_query(raw_query: str) -> ParsedQuery:
         join_right=match.group("join_right").split(".")[-1] if match.group("join_right") else None,
         verification_hint=verification_hint,
         limit=limit,
+        order_by=order_by,
+        order_dir=order_dir,
     )

@@ -34,7 +34,7 @@ class QueryRequest(BaseModel):
     purpose: PurposeEnum = Field(PurposeEnum.research, description="Query purpose")
     strategy: StrategyEnum = Field(StrategyEnum.balanced, description="Optimisation strategy")
     verification: bool = Field(False, description="Force multi-source verification")
-    show_all_conflicts: bool = Field(True, description="Return conflict alternatives for demo transparency")
+    show_all_conflicts: bool = Field(True, description="Return conflict alternatives when provenance is requested")
 
     @field_validator("query")
     @classmethod
@@ -79,6 +79,8 @@ class ParsedQuery:
     join_right: Optional[str] = None
     verification_hint: bool = False
     limit: Optional[int] = None
+    order_by: Optional[str] = None
+    order_dir: str = "asc"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -91,6 +93,8 @@ class ParsedQuery:
             "join_right": self.join_right,
             "verification_hint": self.verification_hint,
             "limit": self.limit,
+            "order_by": self.order_by,
+            "order_dir": self.order_dir,
         }
 
 

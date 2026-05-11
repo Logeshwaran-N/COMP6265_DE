@@ -41,9 +41,9 @@ def estimate_source(dataset_name: str, source_name: str, query: ParsedQuery, sel
         pushdown = "CSV connector scans the file then filters in Python."
     else:
         rows_scanned = max(rows_returned, 1)
-        pushdown = "Predicate is pushed to SQLite/API/live endpoint when possible."
+        pushdown = "Predicate is pushed to SQLite/API endpoint when possible."
 
-    api_calls = 1 if source["type"] in ("api", "live_fx_api") else 0
+    api_calls = 1 if source["type"] == "api" else 0
     latency = float(source["latency_ms"]) + (rows_scanned * 0.35) + (api_calls * 15)
     access_cost = float(source["access_cost"])
     row_cost = rows_scanned * float(source["row_scan_cost"])

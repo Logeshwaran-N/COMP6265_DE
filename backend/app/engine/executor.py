@@ -17,6 +17,25 @@ def _selected_columns(dataset_name: str, query: ParsedQuery) -> List[str]:
     return cols or [CATALOGUE[dataset_name]["entity_key"]]
 
 
+def _sort_value(value: Any) -> Any:
+    if value is None:
+        return ""
+    try:
+        return float(value)
+    except Exception:
+        return str(value)
+
+
+def _apply_order_and_limit(rows: List[Dict[str, Any]], query: ParsedQuery) -> List[Dict[str, Any]]:
+    out = list(rows)
+    if query.order_by:
+        reverse = query.order_dir.lower() == "desc"
+        out.sort(key=lambda row: _sort_value(row.get(query.order_by)), reverse=reverse)
+    if query.limit:
+        out = out[: query.limit]
+    return out
+
+
 def execute_plan(query: ParsedQuery, plan: CandidatePlan, role: str, purpose: str, show_all_conflicts: bool) -> Dict[str, Any]:
     if plan.mode.startswith("join"):
         return _execute_join(query, plan, role, purpose, show_all_conflicts)
@@ -37,8 +56,7 @@ def _execute_single(query: ParsedQuery, plan: CandidatePlan, role: str, purpose:
     else:
         # Single-source still goes through the resolver to attach confidence/provenance consistently.
         result_rows, conflicts = resolve_conflicts(dataset, all_rows, selected, show_all_conflicts)
-    if query.limit:
-        result_rows = result_rows[: query.limit]
+    result_rows = _apply_order_and_limit(result_rows, query)
     pricing = calculate_price(query, plan, conflicts, role, purpose)
     return {"result_rows": result_rows, "conflicts": conflicts, "metrics": metrics, "pricing": pricing}
 
@@ -82,8 +100,7 @@ def _execute_join(query: ParsedQuery, plan: CandidatePlan, role: str, purpose: s
             }
             merged["_chosen_sources"] = [lrow.get("_chosen_source"), rrow.get("_chosen_source")]
             joined.append(merged)
-    if query.limit:
-        joined = joined[: query.limit]
+    joined = _apply_order_and_limit(joined, query)
     conflicts = left_conflicts + right_conflicts
     pricing = calculate_price(query, plan, conflicts, role, purpose)
     return {"result_rows": joined, "conflicts": conflicts, "metrics": metrics, "pricing": pricing}
