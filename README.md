@@ -84,9 +84,12 @@ SQLite reference source     backend/data/warehouse.db
 Mock API source             mock_api service / in-process fallback data
 ```
 
-FX data size in this version:
+Seed data size in this version:
 
 ```text
+fruits:      1,000 records in CSV, SQLite and mock API
+orders:      5,000 records in SQLite and mock API
+suppliers:   120 reference records
 fx_rates:    12 current currency pairs
 fx_history:  21,912 historical observations
 ```
@@ -105,16 +108,22 @@ Historical FX query:
 SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100
 ```
 
-Fruit conflict resolution:
+Fruit conflict resolution with controlled source variance:
 
 ```sql
 SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
 ```
 
+Large retail-order query:
+
+```sql
+SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50
+```
+
 PII policy denial:
 
 ```sql
-SELECT customer_email FROM orders WHERE order_id = 'O-1002'
+SELECT customer_email FROM orders WHERE order_id = 'O-100002'
 ```
 
 ## Tests

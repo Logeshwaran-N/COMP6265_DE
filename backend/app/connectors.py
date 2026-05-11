@@ -122,7 +122,12 @@ def _exec_sqlite(dataset_name: str, source_name: str, query: ParsedQuery, select
     mapping = source["mapping"]
     table = source["table"]
     selected = list(CATALOGUE[dataset_name]["columns"].keys()) if selected_cols == ["*"] else selected_cols
-    phys_cols = sorted({mapping[c] for c in selected if c in mapping} | {mapping[CATALOGUE[dataset_name]["entity_key"]]})
+    needed_virtual = set(selected) | {CATALOGUE[dataset_name]["entity_key"]}
+    if query.where and query.dataset == dataset_name and query.where.left in mapping:
+        needed_virtual.add(query.where.left)
+    if query.order_by and query.order_by in mapping:
+        needed_virtual.add(query.order_by)
+    phys_cols = sorted({mapping[c] for c in needed_virtual if c in mapping})
     sql = f"SELECT {', '.join(phys_cols)} FROM {table}"
     params: list[Any] = []
     if query.where and query.dataset == dataset_name and query.where.left in mapping and query.where.op == "=":

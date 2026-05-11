@@ -1,17 +1,142 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+import random
+from typing import Any, Dict, List, Tuple
+
+FRUIT_ROW_COUNT = 1000
+ORDER_ROW_COUNT = 5000
+SUPPLIER_ROW_COUNT = 120
+
+_GRADES = ["A", "A", "A", "B", "B", "C"]
+_COUNTRIES = ["UK", "Spain", "Morocco", "India", "Netherlands", "France", "Italy", "Brazil", "South Africa", "Egypt"]
+_REGIONS = ["London", "South East", "South West", "Midlands", "North West", "North East", "Scotland", "Wales", "Northern Ireland", "East Anglia"]
+_FRUIT_FAMILIES: List[Tuple[str, float, List[str]]] = [
+    ("apple", 2.85, ["gala", "braeburn", "pink_lady", "granny_smith", "cox", "red_delicious"]),
+    ("banana", 1.18, ["cavendish", "organic", "fairtrade", "mini", "premium"]),
+    ("orange", 2.20, ["valencia", "navel", "blood", "seville", "easy_peel"]),
+    ("mango", 5.40, ["alphonso", "kesar", "kent", "honey", "ripe_pack"]),
+    ("grapes", 4.35, ["red", "green", "black", "seedless", "premium"]),
+    ("pear", 2.55, ["conference", "comice", "anjou", "packham", "rocha"]),
+    ("kiwi", 3.70, ["green", "gold", "organic", "large", "zespri"]),
+    ("strawberry", 4.65, ["uk", "spanish", "large", "organic", "premium"]),
+    ("blueberry", 6.25, ["standard", "jumbo", "organic", "premium", "family_pack"]),
+    ("pineapple", 2.95, ["whole", "sweet", "extra_sweet", "prepared", "gold"]),
+    ("watermelon", 3.80, ["whole", "mini", "seedless", "slice_pack", "premium"]),
+    ("raspberry", 5.90, ["standard", "uk", "organic", "premium", "large_pack"]),
+    ("cherry", 7.10, ["standard", "sweet", "premium", "large", "turkish"]),
+    ("plum", 2.70, ["victoria", "red", "black", "organic", "ripe"]),
+    ("peach", 3.20, ["yellow", "white", "flat", "ripe", "premium"]),
+    ("apricot", 3.85, ["standard", "ripe", "organic", "premium", "family_pack"]),
+    ("papaya", 4.70, ["ripe", "green", "large", "premium", "tropical"]),
+    ("pomegranate", 3.60, ["standard", "large", "premium", "prepared", "imported"]),
+    ("lime", 2.10, ["standard", "large", "organic", "net", "premium"]),
+    ("lemon", 2.25, ["standard", "large", "unwaxed", "organic", "net"]),
+]
+
+
+def _supplier_rows() -> List[Tuple[str, str, str, float]]:
+    rows = []
+    for i in range(1, SUPPLIER_ROW_COUNT + 1):
+        country = _COUNTRIES[(i * 7) % len(_COUNTRIES)]
+        rating = round(3.7 + ((i * 13) % 14) / 10, 1)
+        rows.append((f"S{i:03d}", f"Supplier {i:03d} {country}", country, min(rating, 5.0)))
+    return rows
+
+
+def _fruit_entities() -> List[Dict[str, Any]]:
+    rng = random.Random(6265)
+    rows = []
+    core = [
+        ("apple", 2.85),
+        ("banana", 1.18),
+        ("orange", 2.20),
+        ("mango", 5.40),
+        ("grapes", 4.35),
+        ("pear", 2.55),
+        ("kiwi", 3.70),
+        ("strawberry", 4.65),
+        ("blueberry", 6.25),
+        ("pineapple", 2.95),
+    ]
+    for idx, (name, price) in enumerate(core, 1):
+        rows.append({"name": name, "base_price": price, "supplier_id": f"S{idx:03d}", "grade": _GRADES[idx % len(_GRADES)]})
+    counter = 1
+    while len(rows) < FRUIT_ROW_COUNT:
+        family, base_price, varieties = _FRUIT_FAMILIES[(counter - 1) % len(_FRUIT_FAMILIES)]
+        variety = varieties[(counter * 3) % len(varieties)]
+        pack = ["single", "kg", "box", "premium", "value", "organic", "family"][(counter * 5) % 7]
+        name = f"{family}_{variety}_{pack}_{counter:04d}"
+        if any(r["name"] == name for r in rows):
+            counter += 1
+            continue
+        seasonal = 1 + (((counter * 17) % 41) - 20) / 1000
+        premium = 1 + ((counter * 11) % 23) / 100
+        base = round(max(0.65, base_price * seasonal * premium), 2)
+        supplier_id = f"S{((counter * 7) % SUPPLIER_ROW_COUNT) + 1:03d}"
+        rows.append({"name": name, "base_price": base, "supplier_id": supplier_id, "grade": rng.choice(_GRADES)})
+        counter += 1
+    return rows
+
+
+def get_fruit_rows() -> tuple[list[dict[str, str]], list[tuple[Any, ...]], list[dict[str, Any]]]:
+    csv_rows: list[dict[str, str]] = []
+    db_rows: list[tuple[Any, ...]] = []
+    api_rows: list[dict[str, Any]] = []
+    for idx, entity in enumerate(_fruit_entities()):
+        base = float(entity["base_price"])
+        if idx != 0 and idx % 20 == 0:
+            csv_factor = 0.91 + (idx % 5) * 0.006
+            db_factor = 1.00 + (idx % 3) * 0.004
+            api_factor = 1.08 + (idx % 6) * 0.009
+        else:
+            csv_factor = 0.965 + (idx % 9) * 0.004
+            db_factor = 0.992 + (idx % 7) * 0.004
+            api_factor = 1.004 + (idx % 11) * 0.004
+        csv_price = round(base * csv_factor, 2)
+        db_price = round(base * db_factor, 2)
+        api_price = round(base * api_factor, 2)
+        csv_rows.append({
+            "fruit": entity["name"],
+            "price": f"{csv_price:.2f}",
+            "grade": entity["grade"],
+            "supplier": entity["supplier_id"],
+            "updated": "2026-04-24",
+        })
+        db_rows.append((entity["name"], db_price, entity["grade"], entity["supplier_id"], "2026-05-07"))
+        api_rows.append({
+            "product": entity["name"],
+            "market_price": api_price,
+            "verified_grade": entity["grade"],
+            "provider_ref": entity["supplier_id"],
+            "timestamp": "2026-05-10T08:30:00Z",
+        })
+    return csv_rows, db_rows, api_rows
+
+
+def get_order_rows() -> tuple[list[tuple[Any, ...]], list[dict[str, Any]]]:
+    db_rows: list[tuple[Any, ...]] = []
+    api_rows: list[dict[str, Any]] = []
+    domains = ["example.com", "mail.test", "demo.local", "studentmail.test"]
+    for i in range(1, ORDER_ROW_COUNT + 1):
+        region = _REGIONS[(i * 5) % len(_REGIONS)]
+        base_total = 18 + ((i * 37) % 520) + ((i % 9) * 0.75)
+        total = round(base_total, 2)
+        score = round(0.35 + ((i * 29) % 63) / 100, 2)
+        order_id = f"O-{100000 + i}"
+        email = f"customer{i:05d}@{domains[i % len(domains)]}"
+        db_rows.append((order_id, region, email, total, score))
+        api_amount = round(total * (0.985 + (i % 11) * 0.0035), 2)
+        api_score = round(min(0.99, max(0.05, score + ((i % 7) - 3) * 0.01)), 2)
+        api_rows.append({"id": order_id, "area": region, "contact": email, "amount": api_amount, "demand": api_score})
+    return db_rows, api_rows
+
+
+FRUIT_CSV_ROWS, FRUIT_DB_ROWS, FRUIT_API_ROWS = get_fruit_rows()
+ORDER_DB_ROWS, ORDER_API_ROWS = get_order_rows()
+SUPPLIER_DB_ROWS = _supplier_rows()
 
 SHARED_API_DATA: Dict[str, List[Dict[str, Any]]] = {
-    "fruits": [
-        {"product": "apple", "market_price": 11.00, "verified_grade": "A", "provider_ref": "S1", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "banana", "market_price": 4.45, "verified_grade": "A", "provider_ref": "S2", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "orange", "market_price": 6.05, "verified_grade": "A", "provider_ref": "S3", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "mango", "market_price": 10.50, "verified_grade": "B", "provider_ref": "S4", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "grapes", "market_price": 5.45, "verified_grade": "B", "provider_ref": "S2", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "pear", "market_price": 3.35, "verified_grade": "B", "provider_ref": "S5", "timestamp": "2026-05-07T08:30:00Z"},
-        {"product": "kiwi", "market_price": 7.25, "verified_grade": "A", "provider_ref": "S4", "timestamp": "2026-05-07T08:30:00Z"},
-    ],
+    "fruits": FRUIT_API_ROWS,
     "fx_rates": [
         {"symbol": "GBP_INR", "spot_rate": 129.62, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
         {"symbol": "USD_INR", "spot_rate": 83.51, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
@@ -26,15 +151,5 @@ SHARED_API_DATA: Dict[str, List[Dict[str, Any]]] = {
         {"symbol": "SGD_INR", "spot_rate": 64.7, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
         {"symbol": "AED_INR", "spot_rate": 22.74, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
     ],
-    "orders": [
-        {"id": "O-1001", "area": "South East", "contact": "asha@example.com", "amount": 148.20, "demand": 0.82},
-        {"id": "O-1002", "area": "London", "contact": "ben@example.com", "amount": 249.99, "demand": 0.92},
-        {"id": "O-1003", "area": "Midlands", "contact": "chitra@example.com", "amount": 72.40, "demand": 0.61},
-        {"id": "O-1004", "area": "Scotland", "contact": "david@example.com", "amount": 310.00, "demand": 0.87},
-        {"id": "O-1005", "area": "Wales", "contact": "ella@example.com", "amount": 42.50, "demand": 0.50},
-        {"id": "O-1006", "area": "South West", "contact": "faisal@example.com", "amount": 133.10, "demand": 0.75},
-        {"id": "O-1007", "area": "North West", "contact": "gina@example.com", "amount": 91.80, "demand": 0.67},
-        {"id": "O-1008", "area": "London", "contact": "hari@example.com", "amount": 420.00, "demand": 0.96},
-    ],
+    "orders": ORDER_API_ROWS,
 }
-

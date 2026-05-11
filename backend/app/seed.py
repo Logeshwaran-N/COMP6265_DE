@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from .config import settings
+from .seed_data import FRUIT_CSV_ROWS, FRUIT_DB_ROWS, ORDER_DB_ROWS, SUPPLIER_DB_ROWS
 
 DATA_DIR = settings.data_dir
 DB_PATH = settings.db_path
@@ -81,21 +82,11 @@ def _fx_history_rows():
 
 
 def write_csvs() -> None:
-    fruits = [
-        {"fruit": "apple", "price": "10.00", "grade": "B", "supplier": "S1", "updated": "2026-04-20"},
-        {"fruit": "banana", "price": "4.10", "grade": "A", "supplier": "S2", "updated": "2026-04-20"},
-        {"fruit": "orange", "price": "6.25", "grade": "B", "supplier": "S3", "updated": "2026-04-20"},
-        {"fruit": "mango", "price": "9.80", "grade": "C", "supplier": "S4", "updated": "2026-04-20"},
-        {"fruit": "grapes", "price": "5.70", "grade": "B", "supplier": "S2", "updated": "2026-04-20"},
-        {"fruit": "pear", "price": "3.20", "grade": "B", "supplier": "S5", "updated": "2026-04-20"},
-        {"fruit": "kiwi", "price": "7.40", "grade": "A", "supplier": "S4", "updated": "2026-04-20"},
-    ]
     fx_current_csv, _ = _current_fx_rows()
     fx_history_csv, _ = _fx_history_rows()
-    _write_csv(DATA_DIR / "fruits.csv", fruits)
+    _write_csv(DATA_DIR / "fruits.csv", FRUIT_CSV_ROWS)
     _write_csv(DATA_DIR / "fx_rates.csv", fx_current_csv)
     _write_csv(DATA_DIR / "fx_history.csv", fx_history_csv)
-
 
 def _write_csv(path: Path, rows: list[dict]) -> None:
     with path.open("w", newline="") as f:
@@ -153,35 +144,15 @@ def write_sqlite() -> None:
             country TEXT,
             rating REAL
         );
+        CREATE INDEX IF NOT EXISTS idx_fruit_prices_supplier ON fruit_prices(supplier_code);
+        CREATE INDEX IF NOT EXISTS idx_orders_region ON orders(region);
+        CREATE INDEX IF NOT EXISTS idx_fx_history_pair_date ON fx_history_reference(currency_pair, observed_date);
         """
     )
-    cur.executemany("INSERT INTO fruit_prices VALUES (?, ?, ?, ?, ?)", [
-        ("apple", 12.00, "A", "S1", "2026-05-05"),
-        ("banana", 4.35, "A", "S2", "2026-05-05"),
-        ("orange", 5.95, "A", "S3", "2026-05-05"),
-        ("mango", 10.20, "B", "S4", "2026-05-05"),
-        ("grapes", 5.30, "B", "S2", "2026-05-05"),
-        ("pear", 3.45, "B", "S5", "2026-05-05"),
-        ("kiwi", 7.10, "A", "S4", "2026-05-05"),
-    ])
+    cur.executemany("INSERT INTO fruit_prices VALUES (?, ?, ?, ?, ?)", FRUIT_DB_ROWS)
     cur.executemany("INSERT INTO fx_official_rates VALUES (?, ?, ?, ?)", fx_current_db)
     cur.executemany("INSERT INTO fx_history_reference VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", fx_history_db)
-    cur.executemany("INSERT INTO orders VALUES (?, ?, ?, ?, ?)", [
-        ("O-1001", "South East", "asha@example.com", 148.20, 0.84),
-        ("O-1002", "London", "ben@example.com", 249.99, 0.91),
-        ("O-1003", "Midlands", "chitra@example.com", 72.40, 0.62),
-        ("O-1004", "Scotland", "david@example.com", 310.00, 0.88),
-        ("O-1005", "Wales", "ella@example.com", 42.50, 0.51),
-        ("O-1006", "South West", "faisal@example.com", 133.10, 0.74),
-        ("O-1007", "North West", "gina@example.com", 91.80, 0.68),
-        ("O-1008", "London", "hari@example.com", 420.00, 0.95),
-    ])
-    cur.executemany("INSERT INTO suppliers VALUES (?, ?, ?, ?)", [
-        ("S1", "GreenFarm UK", "UK", 4.7),
-        ("S2", "SunGrow Co", "Spain", 4.4),
-        ("S3", "Citrus Direct", "Morocco", 4.5),
-        ("S4", "Tropical Bridge", "India", 4.0),
-        ("S5", "Orchard Lane", "UK", 4.2),
-    ])
+    cur.executemany("INSERT INTO orders VALUES (?, ?, ?, ?, ?)", ORDER_DB_ROWS)
+    cur.executemany("INSERT INTO suppliers VALUES (?, ?, ?, ?)", SUPPLIER_DB_ROWS)
     con.commit()
     con.close()

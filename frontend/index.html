@@ -176,8 +176,9 @@
         {title:'GBP/INR verified current rate',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION",role:'analyst',purpose:'research',strategy:'trust_first',verify:true},
         {title:'GBP/INR history - latest 100 records',query:"SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100",role:'researcher',purpose:'research',strategy:'balanced',verify:false},
         {title:'Apple price conflict',query:"SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION",role:'researcher',purpose:'research',strategy:'balanced',verify:true},
-        {title:'Fruit range query',query:"SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5",role:'researcher',purpose:'planning',strategy:'cheapest',verify:false},
-        {title:'PII policy check',query:"SELECT customer_email FROM orders WHERE order_id = 'O-1002'",role:'researcher',purpose:'research',strategy:'privacy_first',verify:false}
+        {title:'Fruit range query',query:"SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5 ORDER BY price_gbp DESC LIMIT 50",role:'researcher',purpose:'planning',strategy:'cheapest',verify:false},
+        {title:'Large order analytics view',query:"SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50",role:'analyst',purpose:'planning',strategy:'balanced',verify:false},
+        {title:'PII policy check',query:"SELECT customer_email FROM orders WHERE order_id = 'O-100002'",role:'researcher',purpose:'research',strategy:'privacy_first',verify:false}
       ];
       EXAMPLES.forEach((e,i)=>$('exampleSelect').appendChild(el('option',{value:String(i)},[e.title])));
       function loadExample(i){const e=EXAMPLES[i]; $('queryInput').value=e.query; if(!$('roleSelect').disabled)$('roleSelect').value=e.role; $('purposeSelect').value=e.purpose; $('strategySelect').value=e.strategy; $('verifyChk').checked=e.verify;}
@@ -201,13 +202,11 @@
           if(isAdminUser()) renderAudit(audit);
         }catch(e){
           $('metrics').innerHTML='';
-          // Do not overwrite Governance Audit here. Audit has its own refresh and error handling.
-          console.warn('Dashboard refresh failed', e);
         }
       }
       async function refreshAll(){await refreshMetricsOnly();}
       $('refreshBtn').addEventListener('click',refreshAll);
-      $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{const auditRows=await api('/api/audit?limit=50'); renderAudit(auditRows); }catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
+      $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{renderAudit(await api('/api/audit?limit=50'));}catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
 
       function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{},Object.keys(d.sources||{}).map(s=>el('span',{class:'tag'},[s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${(d.columns||[]).join(', ')}`])]))); root.appendChild(cards);}
       function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet. Run a query to create an audit record.']));return;} const clean=rows.slice(0,12).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),user:a.actor_email||a.actor_username||a.actor_sub||'',role:a.effective_role||a.actor_role||'',purpose:a.purpose||'',decision:a.allowed===false?'denied':'allowed',source:(a.selected_plan?.sources||[]).join(', '),price:a.price??'',query:(a.raw_query||'').slice(0,90)})); root.appendChild(table(clean,980)); root.appendChild(el('details',{},[el('summary',{},['Audit details']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
