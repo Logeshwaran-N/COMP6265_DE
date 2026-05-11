@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Economy Platform</title>
     <style>
-      :root{--bg:#0b1220;--panel:rgba(15,23,42,.76);--panel2:rgba(255,255,255,.055);--border:rgba(255,255,255,.12);--text:rgba(255,255,255,.94);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--purple:#a78bfa}*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(900px 520px at 12% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(820px 500px at 86% 8%,rgba(167,139,250,.18),transparent 58%),var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.62;cursor:not-allowed}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.04);border-color:var(--border)}input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:10px 12px;outline:none}option{background:#101827;color:var(--text)}textarea{min-height:128px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45}label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(450px,100%);border:1px solid var(--border);border-radius:26px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(15,23,42,.80));box-shadow:0 28px 80px rgba(0,0,0,.38)}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.linkbtn{border:0;background:transparent;color:var(--accent);padding:8px 0;font-weight:700}.msg{margin-top:12px}.status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}.status.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10)}.wrap{max-width:1240px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:24px;letter-spacing:-.03em}.title .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:16px;padding:13px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:20px;margin-top:5px}.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.query-controls{display:grid;grid-template-columns:repeat(3,minmax(170px,1fr));gap:12px;align-items:end}.query-controls label{min-height:28px;display:flex;align-items:flex-end}.query-controls select{height:42px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.04);position:sticky;top:0}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}pre{margin:0;max-height:300px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.035);font-size:12px}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}.source-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.row-actions{display:flex;gap:8px;flex-wrap:wrap}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}@media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.panel-grid,.admin-grid{grid-template-columns:1fr}.grid3,.query-controls,.source-cards,.metrics,.cards{grid-template-columns:1fr}.wrap{padding:14px}}
+      :root{--bg:#08111f;--panel:rgba(15,23,42,.78);--panel2:rgba(255,255,255,.06);--panel3:rgba(255,255,255,.1);--border:rgba(255,255,255,.13);--text:rgba(255,255,255,.95);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#5eead4;--accent2:#93c5fd;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--shadow:0 24px 70px rgba(0,0,0,.35)}*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(920px 520px at 8% 0%,rgba(94,234,212,.2),transparent 60%),radial-gradient(850px 520px at 85% 0%,rgba(147,197,253,.17),transparent 60%),linear-gradient(180deg,#08111f,#0b1220 45%,#0a1020);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid rgba(94,234,212,.28);background:rgba(94,234,212,.14);color:var(--text);border-radius:14px;padding:10px 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:750;transition:.15s ease}button:hover{transform:translateY(-1px);background:rgba(94,234,212,.22)}button:disabled{opacity:.6;cursor:not-allowed;transform:none}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.045);border-color:var(--border)}input,select,textarea{width:100%;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.045);color:var(--text);padding:11px 12px;outline:none}input:focus,select:focus,textarea:focus{border-color:rgba(94,234,212,.48);box-shadow:0 0 0 3px rgba(94,234,212,.08)}option{background:#111827;color:var(--text)}textarea{min-height:134px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12.5px;line-height:1.5}label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(455px,100%);border:1px solid var(--border);border-radius:28px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(15,23,42,.86));box-shadow:var(--shadow)}.logo{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:rgba(94,234,212,.15);border:1px solid rgba(94,234,212,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.linkbtn{border:0;background:transparent;color:var(--accent);padding:8px 0;font-weight:800}.msg{margin-top:12px}.wrap{max-width:1280px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:25px;letter-spacing:-.04em}.title .sub{margin-top:7px;color:var(--muted);font-size:13px;line-height:1.5;max-width:760px}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:330px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:18px;padding:14px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:21px;margin-top:5px}.grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel);border-radius:20px;padding:16px;box-shadow:0 18px 42px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.48}.status{padding:11px 13px;border-radius:15px;border:1px solid var(--border);background:rgba(255,255,255,.045);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.11)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.1)}.status.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.11)}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.query-controls{display:grid;grid-template-columns:repeat(3,minmax(170px,1fr));gap:12px;align-items:end}.query-controls label{min-height:28px;display:flex;align-items:flex-end}.query-controls select{height:44px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.answer-card{border:1px solid rgba(94,234,212,.24);background:linear-gradient(180deg,rgba(94,234,212,.105),rgba(255,255,255,.045));border-radius:18px;padding:15px;margin-top:10px}.answer-main{font-size:20px;font-weight:850;letter-spacing:-.02em;margin:5px 0 8px}.mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.mini{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:14px;padding:10px}.mini span{display:block;color:var(--muted2);font-size:11px}.mini b{display:block;margin-top:4px;font-size:13px}.why{margin-top:10px;border-left:3px solid var(--accent);padding:9px 0 9px 12px;color:var(--muted);font-size:13px;line-height:1.45}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.045);position:sticky;top:0}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.045);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}details{margin-top:10px}summary{cursor:pointer;color:var(--muted);font-weight:700}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}.source-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent))}.row-actions{display:flex;gap:8px;flex-wrap:wrap}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}@media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.panel-grid,.admin-grid{grid-template-columns:1fr}.grid3,.query-controls,.source-cards,.metrics,.cards,.mini-grid{grid-template-columns:1fr}.wrap{padding:14px}}
     </style>
   </head>
   <body>
@@ -41,13 +41,11 @@
         <div id="authMessage" class="msg"></div>
       </div>
     </section>
-
     <main id="appShell" class="wrap hidden">
       <div class="top">
-        <div class="title"><h1>Trust-Aware Federated Data Economy Platform</h1><div class="sub">Query distributed CSV, database and API sources with policy checks, source trust, pricing and audit evidence.</div></div>
+        <div class="title"><h1>Intent-Aware Federated Data Economy Platform</h1><div class="sub">One query interface that recommends the right source tier for current values, daily reference data, historical bulk access, verified answers and governed analytics.</div></div>
         <div class="actions"><span id="userBadge" class="pill">Signed in</span><button id="adminToggleBtn" class="ghost hidden" type="button">Admin</button><button id="refreshBtn" class="ghost" type="button">Refresh</button><button id="logoutBtn" type="button">Logout</button></div>
       </div>
-
       <section id="adminPanel" class="card hidden" style="margin-bottom:14px">
         <h2>User administration</h2>
         <div class="meta">Create members, inspect accounts and trigger a password reset when needed.</div>
@@ -58,15 +56,10 @@
             <div class="grid3"><div><label>Role</label><select id="newUserRole"><option>researcher</option><option>analyst</option><option>data_steward</option><option>admin</option></select></div><div style="grid-column:span 2"><label>Temporary password</label><input id="newUserPassword" type="text" value="Temp@12345" required /></div></div>
             <button id="createUserBtn" type="submit" style="margin-top:12px">Add member</button>
           </form>
-          <div>
-            <label>Search users</label><input id="userSearch" type="search" placeholder="Search by email, name or role" />
-            <div id="usersList"></div>
-          </div>
+          <div><label>Search users</label><input id="userSearch" type="search" placeholder="Search by email, name or role" /><div id="usersList"></div></div>
         </div>
       </section>
-
       <section class="metrics" id="metrics"></section>
-
       <section class="grid">
         <div class="card">
           <h2>Federated Query Console</h2>
@@ -75,25 +68,22 @@
           <div class="query-controls">
             <div><label>Role used for policy check</label><select id="roleSelect"><option>guest</option><option>analyst</option><option selected>researcher</option><option>data_steward</option><option>admin</option></select></div>
             <div><label>Purpose</label><select id="purposeSelect"><option selected>research</option><option>commercial</option><option>planning</option><option>internal_audit</option></select></div>
-            <div><label>Strategy</label><select id="strategySelect"><option selected>balanced</option><option>cheapest</option><option>trust_first</option><option>privacy_first</option></select></div>
+            <div><label>User preference</label><select id="strategySelect"><option value="balanced" selected>Balanced / normal</option><option value="cheapest">Cost-effective</option><option value="trust_first">High trust / premium</option><option value="privacy_first">Privacy-first</option></select></div>
           </div>
           <label class="check"><input id="verifyChk" type="checkbox" /> Verify across available sources</label>
           <label class="check"><input id="conflictsChk" type="checkbox" disabled /> Show source comparison details</label>
           <div id="executionPreview" class="status" style="margin-top:10px"></div>
           <button id="runBtn" type="button" style="margin-top:12px">Run query</button>
         </div>
-        <div class="card"><h2>Result</h2><div id="result"><div class="status">Run a query to view result rows, selected source, price and audit evidence.</div></div></div>
+        <div class="card"><h2>Answer</h2><div id="result"><div class="status">Run a query to see the recommended source, plain answer, price and trade-off explanation.</div></div></div>
       </section>
-
       <section class="panel-grid">
-        <div class="card"><h2>Data Catalogue</h2><div class="meta">Virtual datasets mapped to available physical sources.</div><div id="catalogueView"><div class="status">Loading catalogue...</div></div></div>
-        <div id="auditCard" class="card hidden"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h2>Governance Audit</h2><div class="meta">Latest query access, pricing and policy decisions recorded by the backend.</div></div><button id="auditRefreshBtn" class="ghost" type="button">Refresh audit</button></div><div id="auditView"><div class="status">Audit is available to administrators.</div></div></div>
+        <div class="card"><h2>Data Catalogue</h2><div class="meta">Virtual datasets mapped to source tiers such as archive, daily DB, standard API and premium feed.</div><div id="catalogueView"><div class="status">Loading catalogue...</div></div></div>
+        <div id="auditCard" class="card hidden"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h2>Governance Audit</h2><div class="meta">Latest access, pricing and policy decisions recorded by the backend.</div></div><button id="auditRefreshBtn" class="ghost" type="button">Refresh audit</button></div><div id="auditView"><div class="status">Audit is available to administrators.</div></div></div>
       </section>
-
-      <section class="card" style="margin-top:14px"><h2>Source Trust and Reputation</h2><div class="meta">Computed trust combines base quality, authority, provider PageRank, freshness and conflict risk.</div><div id="trust"><div class="status">Loading trust scores...</div></div></section>
+      <section class="card" style="margin-top:14px"><h2>Source Trust and Reputation</h2><div class="meta">Trust combines base quality, authority, provider reputation and freshness. Source tier decides when each provider should be used.</div><div id="trust"><div class="status">Loading trust scores...</div></div></section>
       <div class="footer">COMP6265 Data Economy coursework platform</div>
     </main>
-
     <script type="module">
       const configuredBase = import.meta.env.VITE_API_BASE_URL || "";
       const browserHost = window.location.hostname;
@@ -103,7 +93,6 @@
       const SESSION_KEY = "comp6265_de_session";
       let pendingChallenge = null;
       let resetEmail = "";
-
       const $ = (id) => document.getElementById(id);
       const el = (tag, attrs={}, children=[]) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(v===false || v===null || v===undefined)return; if(k==='class')n.className=v; else if(k==='style')n.setAttribute('style',v); else if(k.startsWith('on') && typeof v==='function')n.addEventListener(k.slice(2),v); else if(v===true)n.setAttribute(k,k); else n.setAttribute(k,v); }); children.forEach(c=>n.appendChild(typeof c==='string'?document.createTextNode(c):c)); return n; };
       const session = () => { try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} };
@@ -116,16 +105,14 @@
       function msg(text, kind=''){ const root=$('authMessage'); root.innerHTML=''; if(text) root.appendChild(el('div',{class:`status ${kind}`},[text])); }
       function hideAuthForms(){ ['loginForm','newPasswordForm','forgotStartForm','forgotConfirmForm'].forEach(id=>$(id).classList.add('hidden')); }
       function showLogin(){ pendingChallenge=null; hideAuthForms(); $('loginForm').classList.remove('hidden'); $('loginIntro').textContent='Sign in with an account created by the platform administrator.'; msg(''); }
-
       async function api(path, options={}){
         let res;
         try{ res = await fetch(`${backendBase}${path}`, { ...options, headers:{'Content-Type':'application/json', ...authHeaders(), ...(options.headers||{})} }); }
         catch(err){ throw new Error(`Cannot reach backend at ${backendBase}: ${err.message}`); }
         const body = (res.headers.get('content-type')||'').includes('application/json') ? await res.json() : await res.text();
-        if(!res.ok){ if(res.status===401){ clearSession(); renderAuth(); } const detail = typeof body==='string' ? body : (body.detail || body.message || JSON.stringify(body)); throw new Error(detail); }
+        if(!res.ok){ if(res.status===401){ clearSession(); renderAuth(); } const detail = typeof body==='string' ? body : (body.detail || body.message || 'Request failed'); throw new Error(detail); }
         return body;
       }
-
       function renderAuth(){
         const s=session();
         if(s && (!s.expiresAt || Date.now()<s.expiresAt)){
@@ -136,9 +123,7 @@
         }
         clearSession(); $('loginScreen').classList.remove('hidden'); $('appShell').classList.add('hidden'); $('auditCard').classList.add('hidden'); showLogin();
       }
-
       function applyRole(user){ if(user.role === 'admin'){ $('roleSelect').disabled=false; return; } $('roleSelect').value = user.role || 'researcher'; $('roleSelect').disabled=true; }
-
       $('loginForm').addEventListener('submit', async (ev)=>{
         ev.preventDefault(); msg('Signing in...'); $('loginBtn').disabled=true;
         try{
@@ -150,13 +135,11 @@
           saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth();
         }catch(e){ msg(e.message,'bad'); } finally { $('loginBtn').disabled=false; }
       });
-
       $('newPasswordForm').addEventListener('submit', async (ev)=>{
         ev.preventDefault(); const p=$('newPasswordInput').value, c=$('confirmPasswordInput').value; if(p!==c){msg('Passwords do not match.','bad');return;} $('setPasswordBtn').disabled=true;
         try{ const res = await api('/api/auth/new-password',{method:'POST', body:JSON.stringify({email:pendingChallenge?.email, session:pendingChallenge?.session, new_password:p})}); pendingChallenge=null; saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth(); }
         catch(e){ msg(e.message,'bad'); } finally { $('setPasswordBtn').disabled=false; }
       });
-
       $('showForgotBtn').addEventListener('click',()=>{ hideAuthForms(); $('forgotStartForm').classList.remove('hidden'); $('forgotEmailInput').value=$('emailInput').value.trim(); $('loginIntro').textContent='Request a password reset code for your approved account.'; msg(''); });
       [...document.querySelectorAll('.authBackBtn'), $('backToLoginBtn')].forEach(btn=>btn.addEventListener('click', showLogin));
       $('forgotStartForm').addEventListener('submit', async (ev)=>{
@@ -169,23 +152,24 @@
         try{ const res=await api('/api/auth/confirm-forgot-password',{method:'POST', body:JSON.stringify({email:resetEmail, confirmation_code:$('resetCodeInput').value.trim(), new_password:p})}); showLogin(); msg(res.message||'Password reset completed. Sign in with the new password.','ok'); }
         catch(e){ msg(e.message,'bad'); } finally { $('confirmResetBtn').disabled=false; }
       });
-
       $('logoutBtn').addEventListener('click',()=>{clearSession(); renderAuth();});
       $('adminToggleBtn').addEventListener('click',()=>{ $('adminPanel').classList.toggle('hidden'); if(!$('adminPanel').classList.contains('hidden')) loadUsers(); });
-
       const EXAMPLES=[
-        {title:'GBP/INR verified current rate',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION",role:'analyst',purpose:'research',strategy:'trust_first',verify:true,provenance:true},
-        {title:'GBP/INR history - latest 100 records',query:"SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100",role:'researcher',purpose:'research',strategy:'balanced',verify:false,provenance:false},
-        {title:'Apple price conflict',query:"SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION",role:'researcher',purpose:'research',strategy:'balanced',verify:true,provenance:true},
-        {title:'Fruit range query',query:"SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5 ORDER BY price_gbp DESC LIMIT 50",role:'researcher',purpose:'planning',strategy:'cheapest',verify:false,provenance:false},
-        {title:'Large order analytics view',query:"SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50",role:'analyst',purpose:'planning',strategy:'balanced',verify:false,provenance:false},
+        {title:'FX live rate - normal provider',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'",role:'analyst',purpose:'research',strategy:'balanced',verify:false,provenance:false},
+        {title:'FX live rate - premium trust',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'",role:'analyst',purpose:'commercial',strategy:'trust_first',verify:false,provenance:false},
+        {title:'FX live rate - verified comparison',query:"SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION",role:'analyst',purpose:'research',strategy:'trust_first',verify:true,provenance:true},
+        {title:'GBP/INR history - low-cost archive',query:"SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100",role:'researcher',purpose:'research',strategy:'balanced',verify:false,provenance:false},
+        {title:'Apple current price',query:"SELECT name, price_gbp FROM fruits WHERE name = 'apple'",role:'researcher',purpose:'planning',strategy:'balanced',verify:false,provenance:false},
+        {title:'Apple verified price comparison',query:"SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION",role:'researcher',purpose:'planning',strategy:'balanced',verify:true,provenance:true},
+        {title:'Fruit bulk range query',query:"SELECT name, price_gbp, quality_grade FROM fruits WHERE price_gbp > 5 ORDER BY price_gbp DESC LIMIT 50",role:'researcher',purpose:'planning',strategy:'cheapest',verify:false,provenance:false},
+        {title:'Order analytics governed source',query:"SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50",role:'analyst',purpose:'planning',strategy:'privacy_first',verify:false,provenance:false},
         {title:'PII policy check',query:"SELECT customer_email FROM orders WHERE order_id = 'O-100002'",role:'researcher',purpose:'research',strategy:'privacy_first',verify:false,provenance:false}
       ];
       EXAMPLES.forEach((e,i)=>$('exampleSelect').appendChild(el('option',{value:String(i)},[e.title])));
       function withoutVerification(q){return String(q||'').replace(/\s+WITH\s+VERIFICATION\s*;?\s*$/i,'').trim();}
       function hasVerificationHint(q){return /\s+WITH\s+VERIFICATION\s*;?\s*$/i.test(String(q||''));}
       function executableQuery(){const base=withoutVerification($('queryInput').value); return $('verifyChk').checked && base ? `${base} WITH VERIFICATION` : base;}
-      function updateVerificationControls(){const verified=$('verifyChk').checked; $('conflictsChk').disabled=!verified; $('strategySelect').disabled=verified; $('strategySelect').title=verified?'Strategy is used only in single-source mode. Verified mode checks all compatible sources and resolves by trust.':''; if(!verified)$('conflictsChk').checked=false; const q=executableQuery(); $('executionPreview').innerHTML=''; $('executionPreview').appendChild(el('div',{},[verified?'Verified mode: all compatible sources will be queried and the final answer will be resolved by trust.':'Single-source mode: the selected strategy chooses one source to query.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[verified?'Strategy is disabled because verification checks CSV, DB and API together.':'Strategy is active in single-source mode.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[`Query that will be executed: ${q||'—'}`]));}
+      function updateVerificationControls(){const verified=$('verifyChk').checked; $('conflictsChk').disabled=!verified; $('strategySelect').disabled=verified; $('strategySelect').title=verified?'Verified mode checks all compatible sources.':''; if(!verified)$('conflictsChk').checked=false; const q=executableQuery(); $('executionPreview').innerHTML=''; $('executionPreview').appendChild(el('div',{},[verified?'Verified mode: the platform checks all compatible sources and resolves the final answer by trust, authority and freshness.':'Single-source mode: the platform recommends one source using query intent and your selected preference.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[verified?'Best for conflict checking and high-confidence demo answers.':'Current point lookups prefer API tiers, history prefers archive, governed analytics prefers warehouse.'])); $('executionPreview').appendChild(el('div',{class:'meta',style:'margin-top:6px'},[`Query that will run: ${q||'—'}`]));}
       function applyVerificationToInput(){const q=executableQuery(); $('queryInput').value=q; updateVerificationControls();}
       function syncVerificationFromInput(){const has=hasVerificationHint($('queryInput').value); if($('verifyChk').checked!==has)$('verifyChk').checked=has; updateVerificationControls();}
       function loadExample(i){const e=EXAMPLES[i]; $('queryInput').value=e.query; if(!$('roleSelect').disabled)$('roleSelect').value=e.role; $('purposeSelect').value=e.purpose; $('strategySelect').value=e.strategy; $('verifyChk').checked=e.verify; $('conflictsChk').checked=!!e.provenance; updateVerificationControls();}
@@ -194,119 +178,56 @@
       $('conflictsChk').addEventListener('change',updateVerificationControls);
       $('queryInput').addEventListener('input',syncVerificationFromInput);
       loadExample(0);
-
-      function table(rows, minWidth=650){ if(!rows?.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(rows[0]); return el('div',{class:'table-wrap'},[el('table',{style:`min-width:${minWidth}px`},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[c])))]),el('tbody',{},rows.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
+      function visibleRows(rows){return (rows||[]).map(row=>Object.fromEntries(Object.entries(row).filter(([k])=>!k.startsWith('_'))));}
+      function human(k){return String(k).replace(/^.*\./,'').replace(/_/g,' ');}
+      function table(rows, minWidth=650){ const clean=visibleRows(rows); if(!clean.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(clean[0]); return el('div',{class:'table-wrap'},[el('table',{style:`min-width:${minWidth}px`},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[human(c)])))]),el('tbody',{},clean.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
       function renderMetrics(data){const items=[['Datasets',Object.keys(data.catalogue||{}).length],['Sources',(data.sources||[]).length],['Trust scores',Object.keys(data.trust?.sources||{}).length],['Audit events',(data.audit||[]).length]]; $('metrics').innerHTML=''; items.forEach(([l,v])=>$('metrics').appendChild(el('div',{class:'metric'},[el('span',{},[l]),el('b',{},[String(v)])])));}
-      function comparisonTable(items){
-        const rows=[];
-        (items||[]).forEach(c=>{
-          (c.alternatives||[]).forEach(a=>rows.push({item:c.entity_value,column:c.column,source:a.source,provider:a.provider,value:a.value,score:a.source_score,selected:a.selected?'yes':'no'}));
-        });
-        return rows.length?table(rows,820):el('div',{class:'status'},['No source comparison rows available.']);
-      }
-      function planSummaryTable(plans){
-        const rows=(plans||[]).map(p=>({plan:p.plan_id,mode:p.mode,sources:(p.sources||[]).join(', '),rows_scanned:p.estimated_rows_scanned,latency_ms:p.estimated_latency_ms,execution_cost:p.estimated_execution_cost,trust:p.mean_trust,score:p.optimiser_score}));
-        return rows.length?table(rows,980):el('div',{class:'status'},['No plan estimates available.']);
+      function comparisonTable(items){const rows=[];(items||[]).forEach(c=>{(c.alternatives||[]).forEach(a=>rows.push({item:c.entity_value,column:c.column,source:a.source,provider:a.provider,value:a.value,score:a.source_score,selected:a.selected?'yes':'no'}));});return rows.length?table(rows,820):el('div',{class:'status'},['No source comparison rows available.']);}
+      function planSummaryTable(plans){const rows=(plans||[]).map(p=>({intent:p.query_intent,mode:p.mode,sources:(p.sources||[]).join(', '),roles:Object.values(p.source_roles||{}).join(', '),rows_scanned:p.estimated_rows_scanned,latency_ms:p.estimated_latency_ms,execution_cost:p.estimated_execution_cost,trust:p.mean_trust,score:p.optimiser_score}));return rows.length?table(rows,1060):el('div',{class:'status'},['No plan estimates available.']);}
+      function pricingBreakdown(p){if(!p)return el('div'); const rows=[{item:'Base access',credits:p.base_fee},{item:'Column value price',credits:p.column_price_arbitrage_guarded},{item:'Source tier premium',credits:p.source_premium},{item:'Verification',credits:p.verification_fee},{item:'Conflict resolution',credits:p.conflict_resolution_fee},{item:'Returned-row tier',credits:p.row_tier_fee}]; return table(rows,520);}
+      function policyView(policy){const duties=(policy.duties||[]).join(', ')||'None'; const rows=[{field:'Decision',value:policy.allowed?'Allowed':'Denied'},{field:'Role',value:policy.role||''},{field:'Purpose',value:policy.purpose||''},{field:'Duties',value:duties},{field:'Reason',value:policy.reason||''}]; return table(rows,650);}
+      function renderRecommendation(r){const rec=r.recommendation||{}; const m=r.execution_metrics||{}; const p=r.pricing||{}; const card=el('div',{class:'answer-card'},[
+        el('div',{class:'meta'},[rec.query_intent_label||'Query result']),
+        el('div',{class:'answer-main'},[rec.answer||r.message||'Answer ready']),
+        el('div',{class:'mini-grid'},[
+          el('div',{class:'mini'},[el('span',{},['Recommended source']),el('b',{},[rec.recommended_source||'Not selected'])]),
+          el('div',{class:'mini'},[el('span',{},['Source tier']),el('b',{},[rec.recommended_source_role||'Not available'])]),
+          el('div',{class:'mini'},[el('span',{},['User preference']),el('b',{},[rec.user_preference||'Balanced'])]),
+          el('div',{class:'mini'},[el('span',{},['Price']),el('b',{},[p.total_user_price!=null?`${p.total_user_price} ${p.currency||'credits'}`:'—'])]),
+          el('div',{class:'mini'},[el('span',{},['Rows scanned internally']),el('b',{},[String(m.actual_rows_scanned??rec.actual_rows_scanned??0)])]),
+          el('div',{class:'mini'},[el('span',{},['API calls']),el('b',{},[String(m.actual_api_calls??rec.api_calls??0)])])
+        ]),
+        el('div',{class:'why'},[rec.why_this_source||'The platform selected the most suitable source for the query intent.'])
+      ]);
+      const alts=rec.alternatives||[]; if(alts.length){card.appendChild(el('details',{},[el('summary',{},['Other available sources']),table(alts.map(a=>({source:a.source,role:a.role,trade_off:a.trade_off})),780)]));}
+      return card;
       }
       function renderResult(r){
         const root=$('result'); root.innerHTML='';
         root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`]));
-        if(r.selected_plan?.plan_id){
-          const p=r.selected_plan; const m=r.execution_metrics||{};
-          root.appendChild(el('div',{style:'margin-top:10px'},[
-            el('div',{},[`Selected plan: ${p.plan_id}`]),
-            el('div',{},[
-              el('span',{class:'tag'},[`mode: ${p.mode}`]),
-              el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),
-              el('span',{class:'tag'},[`execution cost: ${p.estimated_execution_cost}`]),
-              el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`]),
-              el('span',{class:'tag'},[`sources queried: ${m.actual_source_count??p.sources?.length??0}`])
-            ]),
-            el('div',{class:'meta'},[p.explanation||''])
-          ]));
-          if(m.internal_conflict_count>0 && !m.visible_provenance){
-            root.appendChild(el('div',{class:'status warn',style:'margin-top:10px'},[`Sources were compared internally and ${m.internal_conflict_count} source variation(s) were found. Detailed source comparison is hidden because the source-comparison checkbox was not selected.`]));
-          }
-        }
-        if(r.pricing?.total_user_price!=null){
-          root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));
-        }
-        if(r.result_rows?.length)root.appendChild(table(r.result_rows));
-        if(r.conflicts?.length){
-          const severe=r.conflicts.filter(c=>c.variation_type==='conflict').length;
-          const minor=r.conflicts.length-severe;
-          const label=severe?`Conflict detected (${severe})`:`Minor source variation (${minor})`;
-          root.appendChild(el('details',{open:true},[
-            el('summary',{},[`Source comparison - ${label}`]),
-            el('div',{class:'meta',style:'margin:8px 0'},['Different sources returned slightly different values for the same item. The selected value uses the highest trust/authority score.']),
-            comparisonTable(r.conflicts),
-            el('details',{},[el('summary',{},['View source-comparison JSON']),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])
-          ]));
-        }
-        if(r.candidate_plans?.length){
-          root.appendChild(el('details',{},[
-            el('summary',{},[`Advanced optimiser evidence (${r.candidate_plans.length})`]),
-            el('div',{class:'meta',style:'margin:8px 0'},['These are catalogue-based estimates. In single-source mode only the selected source is executed; in verified mode all compatible sources are executed.']),
-            planSummaryTable(r.candidate_plans),
-            el('details',{},[el('summary',{},['View raw optimiser JSON']),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])
-          ]));
-        }
-        if(r.policy_decision && Object.keys(r.policy_decision).length){
-          root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));
-        }
+        if(!r.ok){ if(r.policy_decision && Object.keys(r.policy_decision).length)root.appendChild(el('details',{open:true},[el('summary',{},['Policy decision']),policyView(r.policy_decision)])); return; }
+        root.appendChild(renderRecommendation(r));
+        if((r.result_rows||[]).length){root.appendChild(el('details',{open:true},[el('summary',{},[`Result rows (${r.result_rows.length})`]),table(r.result_rows)]));}
+        if((r.conflicts||[]).length){const severe=r.conflicts.filter(c=>c.variation_type==='conflict').length; const minor=r.conflicts.length-severe; const label=severe?`Conflict detected (${severe})`:`Minor source variation (${minor})`; root.appendChild(el('details',{open:true},[el('summary',{},[`Source comparison - ${label}`]),el('div',{class:'meta',style:'margin:8px 0'},['Different sources returned different values for the same item. The final answer uses the strongest source tier and trust score.']),comparisonTable(r.conflicts)]));}
+        if(r.execution_metrics?.internal_conflict_count>0 && !r.execution_metrics?.visible_provenance){root.appendChild(el('div',{class:'status warn',style:'margin-top:10px'},[`Sources were compared internally and ${r.execution_metrics.internal_conflict_count} source variation(s) were found. Tick source comparison details to show them in the demo.`]));}
+        if(r.candidate_plans?.length){root.appendChild(el('details',{},[el('summary',{},[`Optimiser evidence (${r.candidate_plans.length} plans)`]),el('div',{class:'meta',style:'margin:8px 0'},['These are catalogue-based plan estimates. Actual scanned rows and API calls are shown in the answer card after execution.']),planSummaryTable(r.candidate_plans)]));}
+        if(r.pricing && Object.keys(r.pricing).length){root.appendChild(el('details',{},[el('summary',{},['Price breakdown']),pricingBreakdown(r.pricing),el('div',{class:'meta',style:'margin-top:8px'},[r.pricing.row_tier_note||''])]));}
+        if(r.policy_decision && Object.keys(r.policy_decision).length){root.appendChild(el('details',{},[el('summary',{},['Governance policy evidence']),policyView(r.policy_decision)]));}
       }
       async function runQuery(){ $('runBtn').disabled=true; $('runBtn').textContent='Running...'; try{const verified=$('verifyChk').checked; const payload={query:executableQuery(), role:$('roleSelect').value, purpose:$('purposeSelect').value, strategy:$('strategySelect').value, verification:verified, show_all_conflicts:verified && $('conflictsChk').checked}; renderResult(await api('/api/query',{method:'POST',body:JSON.stringify(payload)})); await refreshMetricsOnly();}catch(e){renderResult({ok:false,message:e.message});}finally{$('runBtn').disabled=false;$('runBtn').textContent='Run query';}}
       $('runBtn').addEventListener('click',runQuery);
-
-      async function refreshMetricsOnly(){
-        try{
-          const requests=[api('/api/catalogue'),api('/api/sources'),api('/api/trust')];
-          if(isAdminUser()) requests.push(api('/api/audit?limit=50'));
-          const results=await Promise.all(requests);
-          const [catalogue,sources,trust]=results;
-          const audit=isAdminUser() ? (results[3]||[]) : [];
-          renderMetrics({catalogue,sources,audit,trust});
-          renderTrust(trust); renderCatalogue(catalogue);
-          if(isAdminUser()) renderAudit(audit);
-        }catch(e){
-          $('metrics').innerHTML='';
-        }
-      }
+      async function refreshMetricsOnly(){try{const requests=[api('/api/catalogue'),api('/api/sources'),api('/api/trust')]; if(isAdminUser()) requests.push(api('/api/audit?limit=50')); const results=await Promise.all(requests); const [catalogue,sources,trust]=results; const audit=isAdminUser() ? (results[3]||[]) : []; renderMetrics({catalogue,sources,audit,trust}); renderTrust(trust); renderCatalogue(catalogue); if(isAdminUser()) renderAudit(audit);}catch(e){$('metrics').innerHTML='';}}
       async function refreshAll(){await refreshMetricsOnly();}
       $('refreshBtn').addEventListener('click',refreshAll);
       $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{renderAudit(await api('/api/audit?limit=50'));}catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
-
-      function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{},Object.keys(d.sources||{}).map(s=>el('span',{class:'tag'},[s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${(d.columns||[]).join(', ')}`])]))); root.appendChild(cards);}
-      function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet. Run a query to create an audit record.']));return;} const clean=rows.slice(0,12).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),user:a.actor_email||a.actor_username||a.actor_sub||'',role:a.effective_role||a.actor_role||'',purpose:a.purpose||'',decision:a.allowed===false?'denied':'allowed',source:(a.selected_plan?.sources||[]).join(', '),price:a.price??'',query:(a.raw_query||'').slice(0,90)})); root.appendChild(table(clean,980)); root.appendChild(el('details',{},[el('summary',{},['Audit details']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
-      function sourceOrder(s){ const t=(s.source_type||'').toLowerCase(); if(t==='csv')return 1; if(t==='sqlite')return 2; if(t==='api')return 3; return 9; }
-      function renderTrust(data){
-        const root=$('trust');
-        const sources=Object.values(data.sources||{});
-        root.innerHTML='';
-        if(!sources.length){root.appendChild(el('div',{class:'status'},['No trust scores found.']));return;}
-        const grouped={};
-        sources.forEach(s=>{const key=s.dataset||'other'; (grouped[key]=grouped[key]||[]).push(s);});
-        Object.keys(grouped).sort().forEach(dataset=>{
-          root.appendChild(el('h3',{style:'font-size:14px;margin:18px 0 4px'},[dataset]));
-          const cards=el('div',{class:'source-cards'},grouped[dataset].sort((a,b)=>sourceOrder(a)-sourceOrder(b) || (b.computed_trust||0)-(a.computed_trust||0)).map(s=>{
-            const pct=Math.round((s.computed_trust||0)*100);
-            const color=(s.computed_trust||0)>.8?'rgba(34,197,94,.85)':(s.computed_trust||0)>.6?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)';
-            return el('div',{class:'card'},[
-              el('div',{style:'display:flex;justify-content:space-between;gap:10px'},[el('strong',{},[s.source_name||'source']),el('strong',{style:'color:var(--accent)'},[`${pct}%`])]),
-              el('div',{class:'meta'},[`${s.source_type||''} • ${s.provider||''}`]),
-              el('div',{class:'bar'},[el('div',{style:`width:${pct}%;background:${color}`})]),
-              el('div',{class:'meta',style:'margin-top:10px'},[`authority ${s.authority_level} • PageRank ${s.pagerank_reputation} • freshness ${s.freshness_score} • risk ${s.conflict_risk}`])
-            ]);
-          }));
-          root.appendChild(cards);
-        });
-      }
-
+      function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>{const sourceText=Object.entries(d.sources||{}).map(([s,meta])=>`${meta.display_name||s}: ${meta.source_role||meta.type}`).join(' | '); return el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{style:'margin-top:6px'},Object.entries(d.sources||{}).map(([s,meta])=>el('span',{class:'tag'},[meta.display_name||s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${Object.keys(d.columns||{}).join(', ')}`]),el('div',{class:'meta',style:'margin-top:8px'},[sourceText])]);})); root.appendChild(cards);}
+      function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet. Run a query to create an audit record.']));return;} const clean=rows.slice(0,12).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),user:a.actor_email||a.actor_username||a.actor_sub||'',role:a.effective_role||a.actor_role||'',intent:a.query_intent||'',decision:a.allowed===false?'denied':'allowed',source:a.recommended_source||(a.selected_plan?.sources||[]).join(', '),price:a.price??'',query:(a.raw_query||'').slice(0,90)})); root.appendChild(table(clean,1050));}
+      function sourceOrder(s){ const r=(s.source_role||'').toLowerCase(); if(r==='archive_bulk')return 1; if(r==='daily_reference'||r==='controlled_warehouse'||r==='reference_master')return 2; if(r==='standard_live'||r==='current_market'||r==='analytics_api')return 3; if(r==='premium_live')return 4; return 9; }
+      function renderTrust(data){const root=$('trust'); const sources=Object.values(data.sources||{}); root.innerHTML=''; if(!sources.length){root.appendChild(el('div',{class:'status'},['No trust scores found.']));return;} const grouped={}; sources.forEach(s=>{const key=s.dataset||'other'; (grouped[key]=grouped[key]||[]).push(s);}); Object.keys(grouped).sort().forEach(dataset=>{root.appendChild(el('h3',{style:'font-size:14px;margin:18px 0 4px'},[dataset])); const cards=el('div',{class:'source-cards'},grouped[dataset].sort((a,b)=>sourceOrder(a)-sourceOrder(b) || (b.computed_trust||0)-(a.computed_trust||0)).map(s=>{const pct=Math.round((s.computed_trust||0)*100);return el('div',{class:'card'},[el('div',{style:'display:flex;justify-content:space-between;gap:10px'},[el('strong',{},[s.display_name||s.source_name||'source']),el('strong',{style:'color:var(--accent)'},[`${pct}%`])]),el('div',{class:'meta'},[`${s.source_role||s.source_type||''} • ${s.provider||''}`]),el('div',{class:'bar'},[el('div',{style:`width:${pct}%`})]),el('div',{class:'meta',style:'margin-top:10px'},[`authority ${s.authority_level} • PageRank ${s.pagerank_reputation} • freshness ${s.freshness_score} • risk ${s.conflict_risk}`])]);})); root.appendChild(cards);});}
       async function loadUsers(){const q=encodeURIComponent($('userSearch').value.trim()); try{const data=await api(`/api/admin/users?search=${q}`); renderUsers(data.users||[]);}catch(e){$('usersList').innerHTML=''; $('usersList').appendChild(el('div',{class:'status bad'},[e.message]));}}
       function renderUsers(users){const root=$('usersList'); root.innerHTML=''; if(!users.length){root.appendChild(el('div',{class:'status'},['No users found.']));return;} const rows=users.map(u=>({email:u.email,name:u.name,role:u.role,status:u.status,enabled:u.enabled?'yes':'no',action:''})); const t=table(rows,760); root.appendChild(t); [...root.querySelectorAll('tbody tr')].forEach((tr,i)=>{const td=tr.lastChild; td.textContent=''; const email=users[i].email; const wrap=el('div',{class:'row-actions'}); const reset=el('button',{class:'ghost',type:'button',onclick:async()=>{if(!confirm(`Send password reset for ${email}?`))return; try{const res=await api(`/api/admin/users/${encodeURIComponent(email)}/reset-password`,{method:'POST'}); alert(res.message || 'Password reset started.');}catch(e){alert(e.message);}}},['Reset']); const currentEmail=currentUserEmail(); const isSelf=currentEmail && email.toLowerCase()===currentEmail; const remove=el('button',{class:'danger',type:'button',disabled:!!isSelf,title:isSelf?'You cannot remove your own account':'Remove user',onclick:async()=>{if(isSelf)return; if(!confirm(`Remove ${email}?`))return; try{await api(`/api/admin/users/${encodeURIComponent(email)}`,{method:'DELETE'}); await loadUsers();}catch(e){alert(e.message);}}},[isSelf?'Current admin':'Remove']); wrap.append(reset,remove); td.appendChild(wrap);});}
       $('userSearch').addEventListener('input',()=>{clearTimeout(window.__userSearchTimer); window.__userSearchTimer=setTimeout(loadUsers,250);});
       $('createUserForm').addEventListener('submit',async(ev)=>{ev.preventDefault(); $('createUserBtn').disabled=true; try{await api('/api/admin/users',{method:'POST',body:JSON.stringify({email:$('newUserEmail').value.trim(),name:$('newUserName').value.trim()||null,role:$('newUserRole').value,temp_password:$('newUserPassword').value})}); $('newUserEmail').value=''; $('newUserName').value=''; await loadUsers();}catch(e){alert(e.message);}finally{$('createUserBtn').disabled=false;}});
-
       renderAuth();
     </script>
   </body>

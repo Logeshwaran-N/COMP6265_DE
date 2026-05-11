@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from ..catalogue import CATALOGUE
 from ..connectors import execute_source
@@ -48,16 +48,12 @@ def _execute_single(query: ParsedQuery, plan: CandidatePlan, role: str, purpose:
     all_rows: List[Dict[str, Any]] = []
     metrics: List[Dict[str, Any]] = []
     for src in plan.sources:
-        rows, m = execute_source(dataset, src, query, selected)
+        rows, metric = execute_source(dataset, src, query, selected)
         all_rows.extend(rows)
-        metrics.append(m)
-    if plan.mode == "verified":
-        result_rows, conflicts = resolve_conflicts(dataset, all_rows, selected, show_all_conflicts)
-    else:
-        # Single-source still goes through the resolver to attach confidence/provenance consistently.
-        result_rows, conflicts = resolve_conflicts(dataset, all_rows, selected, show_all_conflicts)
+        metrics.append(metric)
+    result_rows, conflicts = resolve_conflicts(dataset, all_rows, selected, show_all_conflicts)
     result_rows = _apply_order_and_limit(result_rows, query)
-    pricing = calculate_price(query, plan, conflicts, role, purpose)
+    pricing = calculate_price(query, plan, conflicts, role, purpose, actual_returned_rows=len(result_rows), actual_metrics=metrics)
     return {"result_rows": result_rows, "conflicts": conflicts, "metrics": metrics, "pricing": pricing}
 
 
@@ -71,26 +67,22 @@ def _execute_join(query: ParsedQuery, plan: CandidatePlan, role: str, purpose: s
     right_rows_all: List[Dict[str, Any]] = []
     for src in plan.sources:
         if src in CATALOGUE[left_ds]["sources"]:
-            rows, m = execute_source(left_ds, src, query, left_cols)
+            rows, metric = execute_source(left_ds, src, query, left_cols)
             left_rows_all.extend(rows)
-            metrics.append(m)
+            metrics.append(metric)
         elif src in CATALOGUE[right_ds]["sources"]:
-            rows, m = execute_source(right_ds, src, query, right_cols)
+            rows, metric = execute_source(right_ds, src, query, right_cols)
             right_rows_all.extend(rows)
-            metrics.append(m)
+            metrics.append(metric)
     left_rows, left_conflicts = resolve_conflicts(left_ds, left_rows_all, left_cols, show_all_conflicts)
     right_rows, right_conflicts = resolve_conflicts(right_ds, right_rows_all, right_cols, show_all_conflicts)
     joined: List[Dict[str, Any]] = []
-
-    # Hash join: O(R+S) instead of O(R*S)
     right_index: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     join_left = query.join_left or CATALOGUE[left_ds]["entity_key"]
     join_right = query.join_right or CATALOGUE[right_ds]["entity_key"]
-
     for rrow in right_rows:
         key = str(rrow.get(join_right, "")).lower()
         right_index[key].append(rrow)
-
     for lrow in left_rows:
         key = str(lrow.get(join_left, "")).lower()
         for rrow in right_index.get(key, []):
@@ -102,5 +94,5 @@ def _execute_join(query: ParsedQuery, plan: CandidatePlan, role: str, purpose: s
             joined.append(merged)
     joined = _apply_order_and_limit(joined, query)
     conflicts = left_conflicts + right_conflicts
-    pricing = calculate_price(query, plan, conflicts, role, purpose)
+    pricing = calculate_price(query, plan, conflicts, role, purpose, actual_returned_rows=len(joined), actual_metrics=metrics)
     return {"result_rows": joined, "conflicts": conflicts, "metrics": metrics, "pricing": pricing}

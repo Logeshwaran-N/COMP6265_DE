@@ -53,7 +53,8 @@ def test_fx_history_large_query_ordered():
     assert res['ok'] is True
     assert len(res['result_rows']) == 100
     assert res['result_rows'][0]['date'] >= res['result_rows'][-1]['date']
-    assert res['pricing']['row_tier_fee'] >= 0.75
+    assert res['pricing']['row_tier_fee'] >= 0.25
+    assert res['pricing']['charged_output_rows'] == 100
 
 
 def _selected_source_for_strategy(strategy: str) -> str:
@@ -73,8 +74,8 @@ def _selected_source_for_strategy(strategy: str) -> str:
 
 
 def test_fruit_strategy_source_selection():
-    assert _selected_source_for_strategy('cheapest') == 'fruit_csv'
-    assert _selected_source_for_strategy('balanced') == 'fruit_db'
+    assert _selected_source_for_strategy('cheapest') == 'fruit_db'
+    assert _selected_source_for_strategy('balanced') == 'fruit_api'
     assert _selected_source_for_strategy('trust_first') == 'fruit_api'
     assert _selected_source_for_strategy('privacy_first') == 'fruit_db'
 
@@ -110,6 +111,29 @@ def _fx_selected_source_for_strategy(strategy: str) -> str:
 
 
 def test_fx_strategy_source_selection():
-    assert _fx_selected_source_for_strategy('cheapest') == 'fx_csv'
-    assert _fx_selected_source_for_strategy('balanced') == 'fx_db'
-    assert _fx_selected_source_for_strategy('trust_first') == 'fx_api'
+    assert _fx_selected_source_for_strategy('cheapest') == 'fx_api'
+    assert _fx_selected_source_for_strategy('balanced') == 'fx_api'
+    assert _fx_selected_source_for_strategy('trust_first') == 'fx_premium_api'
+
+
+def test_history_intent_uses_archive_for_balanced():
+    res = client.post('/api/query', json={
+        'query': "SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100",
+        'role': 'researcher',
+        'purpose': 'research',
+        'strategy': 'balanced'
+    }).json()
+    assert res['ok'] is True
+    assert res['selected_plan']['sources'][0] == 'fx_history_csv'
+    assert res['recommendation']['query_intent'] == 'historical_bulk'
+
+def test_fx_high_trust_uses_premium_provider():
+    res = client.post('/api/query', json={
+        'query': "SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'",
+        'role': 'analyst',
+        'purpose': 'commercial',
+        'strategy': 'trust_first'
+    }).json()
+    assert res['ok'] is True
+    assert res['selected_plan']['sources'][0] == 'fx_premium_api'
+    assert 'Premium' in res['recommendation']['recommended_source']

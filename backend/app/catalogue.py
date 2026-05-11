@@ -463,6 +463,60 @@ PROVIDER_ENDORSEMENTS = {'gov_authorised_server': ['enterprise_warehouse', 'mock
  'mock_realtime_fx_provider': ['gov_authorised_server'],
  'historical_csv_upload': []}
 
+CATALOGUE["fx_rates"]["sources"]["fx_api"].update({
+    "provider": "standard_live_fx_provider",
+    "display_name": "Standard FX Live API",
+    "source_role": "standard_live",
+    "best_for": ["current single-value lookup", "normal cost-effective live rate"],
+    "trade_off": "Fresher than daily DB data and cheaper than the premium trading feed.",
+})
+
+CATALOGUE["fx_rates"]["sources"]["fx_premium_api"] = {
+    "type": "api",
+    "provider": "premium_trading_fx_provider",
+    "display_name": "Premium FX Trading Feed",
+    "source_role": "premium_live",
+    "endpoint": "/fx_rates_premium",
+    "row_count": 12,
+    "base_trust": 0.985,
+    "authority_level": 0.98,
+    "freshness_days": 0,
+    "access_cost": 2.4,
+    "row_scan_cost": 0.018,
+    "latency_ms": 70,
+    "api_call_cost": 1.75,
+    "conflict_risk": 0.06,
+    "best_for": ["high-trust current rate", "premium trading-grade lookup"],
+    "trade_off": "Highest trust and freshness for live FX values, but it has the highest access price.",
+    "mapping": {"pair": "symbol", "rate": "spot_rate", "precision": "precision", "last_updated": "as_of"},
+}
+
+SOURCE_PROFILE_UPDATES = {
+    "fruit_csv": {"display_name": "Fruit CSV Data Lake", "source_role": "archive_bulk", "best_for": ["historical fruit data", "large low-cost scans"], "trade_off": "Cheap for large archive reads, but not ideal for latest single fruit price."},
+    "fruit_db": {"display_name": "Fruit Daily Warehouse DB", "source_role": "daily_reference", "best_for": ["cost-effective single lookup", "clean daily fruit data"], "trade_off": "Cheaper and controlled, but less fresh than the market API."},
+    "fruit_api": {"display_name": "Trusted Fruit Market API", "source_role": "current_market", "best_for": ["current fruit price", "high freshness retail feed"], "trade_off": "Freshest fruit source, but costs more than DB or CSV."},
+    "fx_csv": {"display_name": "Manual FX CSV Archive", "source_role": "archive_bulk", "best_for": ["low-cost archive preview"], "trade_off": "Very cheap, but stale for current FX rates."},
+    "fx_db": {"display_name": "Official Daily FX DB", "source_role": "daily_reference", "best_for": ["cost-effective daily FX reference", "governed planning use"], "trade_off": "Highly governed and cheaper than live API, but not second-level live data."},
+    "orders_db": {"display_name": "Enterprise Orders Warehouse", "source_role": "controlled_warehouse", "best_for": ["controlled order analytics", "privacy-first access"], "trade_off": "Best governed source for internal order data."},
+    "orders_api": {"display_name": "Retail Analytics API", "source_role": "analytics_api", "best_for": ["external analytics enrichment"], "trade_off": "Useful for analytics enrichment, but less controlled than the warehouse."},
+    "suppliers_db": {"display_name": "Supplier Master DB", "source_role": "reference_master", "best_for": ["supplier master data"], "trade_off": "Single controlled reference source."},
+    "fx_history_csv": {"display_name": "FX History CSV Data Lake", "source_role": "archive_bulk", "best_for": ["large historical FX queries", "low-cost bulk export"], "trade_off": "Best cost option for many historical rows; lower authority than official DB."},
+    "fx_history_db": {"display_name": "Official FX History DB", "source_role": "daily_reference", "best_for": ["trusted historical FX reference"], "trade_off": "Cleaner and more authoritative than CSV, but costs more for bulk history."},
+}
+
+for dataset_name, dataset in CATALOGUE.items():
+    if dataset_name == "fx_history":
+        dataset["source_category"] = "history"
+    for source_name, source in dataset["sources"].items():
+        if source_name in SOURCE_PROFILE_UPDATES:
+            source.update(SOURCE_PROFILE_UPDATES[source_name])
+
+PROVIDER_ENDORSEMENTS.update({
+    "gov_authorised_server": ["enterprise_warehouse", "standard_live_fx_provider", "historical_csv_upload", "premium_trading_fx_provider"],
+    "standard_live_fx_provider": ["gov_authorised_server", "premium_trading_fx_provider"],
+    "premium_trading_fx_provider": ["gov_authorised_server", "standard_live_fx_provider"],
+})
+
 def get_catalogue() -> Dict[str, Any]:
     return deepcopy(CATALOGUE)
 

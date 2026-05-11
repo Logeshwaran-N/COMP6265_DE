@@ -135,21 +135,29 @@ FRUIT_CSV_ROWS, FRUIT_DB_ROWS, FRUIT_API_ROWS = get_fruit_rows()
 ORDER_DB_ROWS, ORDER_API_ROWS = get_order_rows()
 SUPPLIER_DB_ROWS = _supplier_rows()
 
+FX_STANDARD_API_ROWS: List[Dict[str, Any]] = [
+    {"symbol": "GBP_INR", "spot_rate": 129.62, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "USD_INR", "spot_rate": 83.51, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "EUR_INR", "spot_rate": 111.22, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "GBP_USD", "spot_rate": 1.55, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "EUR_GBP", "spot_rate": 0.858, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "EUR_USD", "spot_rate": 1.33, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "USD_GBP", "spot_rate": 0.645, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "GBP_EUR", "spot_rate": 1.166, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "AUD_INR", "spot_rate": 55.1, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "CAD_INR", "spot_rate": 61.25, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "SGD_INR", "spot_rate": 64.7, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+    {"symbol": "AED_INR", "spot_rate": 22.74, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
+]
+
+FX_PREMIUM_API_ROWS: List[Dict[str, Any]] = [
+    {"symbol": row["symbol"], "spot_rate": round(float(row["spot_rate"]) * (1.00004 + (idx % 3) * 0.00001), 5), "precision": 5, "as_of": "2026-05-10T09:00:08Z"}
+    for idx, row in enumerate(FX_STANDARD_API_ROWS)
+]
+
 SHARED_API_DATA: Dict[str, List[Dict[str, Any]]] = {
     "fruits": FRUIT_API_ROWS,
-    "fx_rates": [
-        {"symbol": "GBP_INR", "spot_rate": 129.62, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "USD_INR", "spot_rate": 83.51, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "EUR_INR", "spot_rate": 111.22, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "GBP_USD", "spot_rate": 1.55, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "EUR_GBP", "spot_rate": 0.858, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "EUR_USD", "spot_rate": 1.33, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "USD_GBP", "spot_rate": 0.645, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "GBP_EUR", "spot_rate": 1.166, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "AUD_INR", "spot_rate": 55.1, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "CAD_INR", "spot_rate": 61.25, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "SGD_INR", "spot_rate": 64.7, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-        {"symbol": "AED_INR", "spot_rate": 22.74, "precision": 4, "as_of": "2026-05-10T09:00:00Z"},
-    ],
+    "fx_rates": FX_STANDARD_API_ROWS,
+    "fx_rates_premium": FX_PREMIUM_API_ROWS,
     "orders": ORDER_API_ROWS,
 }

@@ -57,6 +57,7 @@ class QueryResponse(BaseModel):
     conflicts: List[Dict[str, Any]] = Field(default_factory=list)
     pricing: Dict[str, Any] = Field(default_factory=dict)
     execution_metrics: Dict[str, Any] = Field(default_factory=dict)
+    recommendation: Dict[str, Any] = Field(default_factory=dict)
     audit_id: Optional[str] = None
 
 
@@ -134,6 +135,9 @@ class CandidatePlan:
     complexity_class: str
     explanation: str
     warnings: List[str] = field(default_factory=list)
+    query_intent: str = "exploratory"
+    selection_reason: str = ""
+    source_roles: Dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -155,6 +159,9 @@ class CandidatePlan:
             "complexity_class": self.complexity_class,
             "explanation": self.explanation,
             "warnings": self.warnings,
+            "query_intent": self.query_intent,
+            "selection_reason": self.selection_reason,
+            "source_roles": self.source_roles,
         }
 
 

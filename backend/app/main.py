@@ -12,6 +12,7 @@ from .errors import InvalidQueryError, QueryError
 from .engine.executor import execute_plan
 from .engine.optimizer import choose_plan
 from .engine.policy import evaluate_policy
+from .engine.intent import build_recommendation
 from .logging_config import configure_logging
 from .models import QueryRequest, QueryResponse, LoginRequest, NewPasswordRequest, PasswordChangeRequest, ForgotPasswordRequest, ConfirmForgotPasswordRequest, AdminCreateUserRequest
 from .parser import parse_query
@@ -20,7 +21,7 @@ from .seed import ensure_seed_data
 configure_logging()
 ensure_seed_data()
 
-app = FastAPI(title="Trust-Aware Federated Data Economy Platform", version="2.2.0")
+app = FastAPI(title="Intent-Aware Federated Data Economy Platform", version="2.3.0")
 
 _frontend_origins_raw = os.getenv("FRONTEND_ORIGINS") or os.getenv("DATA_ECONOMY_FRONTEND_ORIGINS") or "*"
 _frontend_origins = [o.strip().rstrip("/") for o in _frontend_origins_raw.split(",") if o.strip()]
@@ -37,7 +38,7 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"ok": True, "service": "data-economy-backend", "version": "2.2.0", "auth_provider": auth_provider()}
+    return {"ok": True, "service": "data-economy-backend", "version": "2.3.0", "auth_provider": auth_provider()}
 
 
 @app.get("/api/auth/me")
@@ -145,25 +146,25 @@ def audit(limit: int = 50, user=Depends(get_current_user)):
 @app.get("/api/algorithm")
 def algorithm(user=Depends(get_current_user)):
     return {
-        "name": "Policy-aware, trust-aware, cost-aware federated optimiser",
+        "name": "Intent-aware, trust-tiered federated source selection",
         "pipeline": [
             "Parse SQL-like query over virtual catalogue",
+            "Classify query intent as current point, historical bulk, analytics slice, record lookup or verified answer",
             "Map virtual columns to physical source schemas",
             "Evaluate ODRL-inspired role/purpose/column constraints",
-            "Enumerate source plans and estimate cardinality/cost/latency/trust",
-            "Choose one source by strategy, or all sources when verification is requested",
-            "Execute with selection pushdown where source supports it",
+            "Rank compatible sources using intent, user preference, source tier, cost, freshness, trust and latency",
+            "Use one recommended source in standard mode or all compatible sources in verified mode",
             "Detect duplicated/conflicting entity values in verified mode",
-            "Resolve conflicts using computed trust + authority and return provenance",
-            "Calculate user-facing query price with an arbitrage guard",
+            "Resolve conflicts using trust, authority and freshness",
+            "Calculate user-facing query price separately from internal execution cost",
             "Write audit event as a duty of policy enforcement",
         ],
         "cost_model": {
             "estimated_execution_cost": "access_cost + rows_scanned*row_scan_cost + api_calls*api_call_cost + projection_penalty",
-            "strategy_cheapest": "select the lowest access-price source tier, often CSV/file",
-            "strategy_balanced": "select the best trade-off source, usually the structured reference DB",
-            "strategy_trust_first": "select the highest trust/freshness source, often API",
-            "strategy_privacy_first": "select a controlled source and avoid unnecessary external API calls",
+            "strategy_cheapest": "prefer cost-effective sources that still fit the query intent; avoid stale CSV for live single-value answers when a better low-cost option exists",
+            "strategy_balanced": "prefer a normal source tier such as standard live API for current values, warehouse DB for controlled data, and CSV archive for large history",
+            "strategy_trust_first": "prefer premium or authoritative providers even when their access price is higher",
+            "strategy_privacy_first": "prefer controlled DB/warehouse sources and avoid unnecessary external API exposure",
         },
         "pricing_model": {
             "separation": "Internal execution cost is for optimiser decisions; user-facing query price is data-value/access pricing.",
@@ -171,6 +172,7 @@ def algorithm(user=Depends(get_current_user)):
         },
         "complexities": {
             "single_dataset_plans": "O(S), S = compatible sources",
+            "intent_ranking": "O(S), source score calculation per compatible source",
             "verified_execution": "O(S*R + K*V), sources*rows plus conflict groups",
             "join_plan_enumeration": "O(S1*S2) for two-way source-pair enumeration",
             "pagerank": "O(I*(V+E))",
@@ -214,6 +216,7 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
             )
         else:
             message = "Query executed in single-source mode. Enable verification to compare available sources."
+        recommendation = build_recommendation(parsed, selected_plan, exec_result["result_rows"], exec_result["pricing"], exec_result["metrics"], visible_conflicts, policy, req.strategy.value if hasattr(req.strategy, "value") else str(req.strategy), verification)
         audit_id = write_audit({
             **audit_base,
             "allowed": True,
@@ -223,6 +226,8 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
             "row_count": len(exec_result["result_rows"]),
             "actual_sources": actual_sources,
             "show_provenance": show_provenance,
+            "query_intent": recommendation.get("query_intent"),
+            "recommended_source": recommendation.get("recommended_source"),
         })
         return QueryResponse(
             ok=True,
@@ -238,9 +243,12 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
                 "actual_source_metrics": exec_result["metrics"],
                 "actual_sources": actual_sources,
                 "actual_source_count": len(actual_sources),
+                "actual_rows_scanned": sum(int(m.get("rows_scanned", 0) or 0) for m in exec_result["metrics"]),
+                "actual_api_calls": sum(int(m.get("api_calls", 0) or 0) for m in exec_result["metrics"]),
                 "visible_provenance": show_provenance,
                 "internal_conflict_count": len(exec_result["conflicts"]),
             },
+            recommendation=recommendation,
             audit_id=audit_id,
         )
     except (InvalidQueryError, QueryError, ValueError) as exc:

@@ -1,14 +1,16 @@
-# Trust-Aware Federated Data Economy Platform
+# Intent-Aware Federated Data Economy Platform
 
-COMP6265 prototype for querying distributed data products with governance, trust, pricing and audit evidence.
+COMP6265 prototype for querying distributed data products through one platform. The system recommends the best source tier based on query intent, user preference, trust, freshness, cost, policy and pricing.
 
 ## What the system demonstrates
 
-- Federated querying over CSV, SQLite and mock API sources
-- Current FX rate verification across multiple providers
-- Large FX history access for analytics / bot-training style queries
-- Trust-aware conflict resolution and source provenance
-- Query pricing and execution-cost estimation
+- Federated querying over CSV, SQLite and API-style sources
+- Intent-aware source selection for current point values, historical bulk data, analytics slices and record lookups
+- Trust-tiered FX provider choice: daily DB, standard live API and premium trading feed
+- Fruit source choice between low-cost daily DB, trusted current market API and CSV data lake
+- CSV/data-lake preference for large historical queries
+- Verified mode that checks multiple sources, detects conflicts and resolves by trust, authority and freshness
+- Query pricing separated from internal execution cost
 - ODRL-inspired role, purpose and column policy checks
 - Audit logging
 - Admin-managed users with local auth or Cognito auth
@@ -23,7 +25,7 @@ HTTPS API: API Gateway proxy to EC2 backend
 Data: packaged CSV + SQLite + mock API service
 ```
 
-The project avoids live third-party APIs in this version so the demonstration is stable and repeatable.
+The project avoids live third-party APIs so the coursework demo is stable and repeatable.
 
 ## Local login
 
@@ -75,13 +77,21 @@ Frontend environment variable in Amplify:
 VITE_API_BASE_URL=https://YOUR-API-GATEWAY-URL
 ```
 
-## Data sources
+## Data source tiers
 
 ```text
-CSV current FX source       backend/data/fx_rates.csv
-CSV historical FX source    backend/data/fx_history.csv
-SQLite reference source     backend/data/warehouse.db
-Mock API source             mock_api service / in-process fallback data
+Fruit CSV Data Lake        low-cost archive / bulk scan
+Fruit Daily Warehouse DB   daily cleaned fruit price reference
+Trusted Fruit Market API   fresher current fruit market price
+Manual FX CSV Archive      low-trust/stale current FX file
+Official Daily FX DB       governed daily FX reference
+Standard FX Live API       normal live-ish FX provider
+Premium FX Trading Feed    high-trust premium FX provider
+FX History CSV Data Lake   low-cost historical FX bulk access
+Official FX History DB     cleaner high-trust historical reference
+Enterprise Orders DB       governed internal order analytics
+Retail Analytics API       external analytics enrichment
+Supplier Master DB         controlled supplier reference data
 ```
 
 Seed data size in this version:
@@ -94,41 +104,60 @@ fx_rates:    12 current currency pairs
 fx_history:  21,912 historical observations
 ```
 
+## Query modes and preferences
 
-## Query modes and strategies
-
-Standard mode executes one selected source only. Verification mode executes all compatible sources and can show provenance/conflict details.
+Standard mode executes one recommended source. Verification mode executes all compatible sources and can show source comparison details.
 
 ```text
-cheapest      -> lowest access-price source tier, usually CSV/file
-balanced      -> best trade-off source, usually SQLite reference data
-trust_first   -> highest trust/freshness tier, usually mock API
-privacy_first -> controlled source with minimal external exposure, usually SQLite
+balanced      -> normal choice for the query intent
+cheapest      -> cost-effective source that still fits the intent
+trust_first   -> premium or highest-authority provider
+privacy_first -> controlled DB/warehouse source where possible
 ```
 
-The UI keeps `WITH VERIFICATION` and the verification checkbox in sync. Provenance details are shown only when the provenance checkbox is selected.
+The UI keeps `WITH VERIFICATION` and the verification checkbox in sync. Source comparison details are shown only when selected.
 
 ## Important queries
 
-Current GBP/INR verification:
+Normal live FX rate:
+
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'
+```
+
+Premium live FX rate:
+
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'
+```
+
+Run the premium example with the `High trust / premium` preference.
+
+Verified GBP/INR comparison:
 
 ```sql
 SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
 ```
 
-Historical FX query:
+Low-cost historical FX query:
 
 ```sql
 SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100
 ```
 
-Fruit conflict resolution with controlled source variance:
+Current fruit price:
+
+```sql
+SELECT name, price_gbp FROM fruits WHERE name = 'apple'
+```
+
+Fruit verified conflict resolution:
 
 ```sql
 SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
 ```
 
-Large retail-order query:
+Retail-order analytics:
 
 ```sql
 SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50

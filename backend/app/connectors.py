@@ -10,7 +10,7 @@ import httpx
 
 from .catalogue import CATALOGUE
 from .config import settings
-from .models import ParsedPredicate, ParsedQuery
+from .models import ParsedQuery
 from .seed import DB_PATH
 from .seed_data import SHARED_API_DATA
 
@@ -20,6 +20,7 @@ MOCK_API_BASE_URL = settings.mock_api_base_url
 FALLBACK_API_DATA: Dict[str, List[Dict[str, Any]]] = {
     "/fruits": SHARED_API_DATA["fruits"],
     "/fx_rates": SHARED_API_DATA["fx_rates"],
+    "/fx_rates_premium": SHARED_API_DATA["fx_rates_premium"],
     "/orders": SHARED_API_DATA["orders"],
 }
 
@@ -73,7 +74,6 @@ def _project_and_map(dataset_name: str, source_name: str, physical_rows: List[Di
                 continue
         out_cols = list(CATALOGUE[dataset_name]["columns"].keys()) if selected_cols == ["*"] else selected_cols
         projected = {col: vrow.get(col) for col in out_cols if col in vrow}
-        # Always keep entity key for conflict resolution and provenance, even if not selected.
         key = CATALOGUE[dataset_name]["entity_key"]
         if key in vrow and key not in projected:
             projected[key] = vrow[key]
@@ -88,20 +88,23 @@ def execute_source(dataset_name: str, source_name: str, query: ParsedQuery, sele
     source = CATALOGUE[dataset_name]["sources"][source_name]
     start = time.perf_counter()
     if source["type"] == "csv":
-        rows = _exec_csv(dataset_name, source_name, query, selected_cols)
+        rows, rows_scanned = _exec_csv(dataset_name, source_name, query, selected_cols)
         api_calls = 0
     elif source["type"] == "sqlite":
-        rows = _exec_sqlite(dataset_name, source_name, query, selected_cols)
+        rows, rows_scanned = _exec_sqlite(dataset_name, source_name, query, selected_cols)
         api_calls = 0
     elif source["type"] == "api":
-        rows = _exec_api(dataset_name, source_name, query, selected_cols)
+        rows, rows_scanned = _exec_api(dataset_name, source_name, query, selected_cols)
         api_calls = 1
     else:
         raise ValueError(f"Unsupported source type: {source['type']}")
     elapsed_ms = (time.perf_counter() - start) * 1000
     metrics = {
         "source": source_name,
+        "source_label": source.get("display_name", source_name),
+        "source_role": source.get("source_role", source.get("type")),
         "dataset": dataset_name,
+        "rows_scanned": rows_scanned,
         "rows_returned": len(rows),
         "api_calls": api_calls,
         "elapsed_ms": round(elapsed_ms, 3),
@@ -110,14 +113,14 @@ def execute_source(dataset_name: str, source_name: str, query: ParsedQuery, sele
     return rows, metrics
 
 
-def _exec_csv(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> List[Dict[str, Any]]:
+def _exec_csv(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> Tuple[List[Dict[str, Any]], int]:
     source = CATALOGUE[dataset_name]["sources"][source_name]
     with (DATA_DIR / source["file"]).open() as f:
         physical = list(csv.DictReader(f))
-    return _project_and_map(dataset_name, source_name, physical, query, selected_cols)
+    return _project_and_map(dataset_name, source_name, physical, query, selected_cols), len(physical)
 
 
-def _exec_sqlite(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> List[Dict[str, Any]]:
+def _exec_sqlite(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> Tuple[List[Dict[str, Any]], int]:
     source = CATALOGUE[dataset_name]["sources"][source_name]
     mapping = source["mapping"]
     table = source["table"]
@@ -130,21 +133,22 @@ def _exec_sqlite(dataset_name: str, source_name: str, query: ParsedQuery, select
     phys_cols = sorted({mapping[c] for c in needed_virtual if c in mapping})
     sql = f"SELECT {', '.join(phys_cols)} FROM {table}"
     params: list[Any] = []
-    if query.where and query.dataset == dataset_name and query.where.left in mapping and query.where.op == "=":
+    equality_pushdown = bool(query.where and query.dataset == dataset_name and query.where.left in mapping and query.where.op == "=")
+    if equality_pushdown:
         sql += f" WHERE {mapping[query.where.left]} = ?"
         params.append(query.where.right)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     rows = [dict(r) for r in con.execute(sql, params).fetchall()]
     con.close()
-    return _project_and_map(dataset_name, source_name, rows, query, selected)
+    rows_scanned = len(rows) if equality_pushdown else int(source.get("row_count", len(rows)))
+    return _project_and_map(dataset_name, source_name, rows, query, selected), rows_scanned
 
 
-def _exec_api(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> List[Dict[str, Any]]:
+def _exec_api(dataset_name: str, source_name: str, query: ParsedQuery, selected_cols: List[str]) -> Tuple[List[Dict[str, Any]], int]:
     source = CATALOGUE[dataset_name]["sources"][source_name]
     endpoint = source["endpoint"]
     params: Dict[str, Any] = {}
-    # Our mock API supports generic key/value equality filter.
     if query.where and query.dataset == dataset_name and query.where.op == "=":
         physical_col = source["mapping"].get(query.where.left)
         if physical_col:
@@ -160,6 +164,8 @@ def _exec_api(dataset_name: str, source_name: str, query: ParsedQuery, selected_
                 physical = response.json()
         except Exception:
             physical = FALLBACK_API_DATA.get(endpoint, [])
+    rows_before_filter = len(physical)
     if params:
         physical = [r for r in physical if all(str(r.get(k)).lower() == str(v).lower() for k, v in params.items())]
-    return _project_and_map(dataset_name, source_name, physical, query, selected_cols)
+    rows_scanned = len(physical) if params else rows_before_filter
+    return _project_and_map(dataset_name, source_name, physical, query, selected_cols), rows_scanned

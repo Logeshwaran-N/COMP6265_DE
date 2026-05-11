@@ -16,6 +16,7 @@ except Exception:
 
 FRUITS = SHARED_API_DATA["fruits"]
 FX = SHARED_API_DATA["fx_rates"]
+FX_PREMIUM = SHARED_API_DATA["fx_rates_premium"]
 ORDERS = SHARED_API_DATA["orders"]
 
 
@@ -47,6 +48,11 @@ def fruits(request: Request):
 @app.get("/fx_rates")
 def fx_rates(request: Request):
     return filter_rows(FX, dict(request.query_params))
+
+
+@app.get("/fx_rates_premium")
+def fx_rates_premium(request: Request):
+    return filter_rows(FX_PREMIUM, dict(request.query_params))
 
 
 @app.get("/orders")
