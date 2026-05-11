@@ -86,7 +86,7 @@
 
       <section class="panel-grid">
         <div class="card"><h2>Data Catalogue</h2><div class="meta">Virtual datasets mapped to available physical sources.</div><div id="catalogueView"><div class="status">Loading catalogue...</div></div></div>
-        <div id="auditCard" class="card hidden"><h2>Governance Audit</h2><div class="meta">Recent policy, pricing and access decisions recorded by the backend.</div><div id="auditView"><div class="status">Audit is available to administrators.</div></div></div>
+        <div id="auditCard" class="card hidden"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><h2>Governance Audit</h2><div class="meta">Latest query access, pricing and policy decisions recorded by the backend.</div></div><button id="auditRefreshBtn" class="ghost" type="button">Refresh audit</button></div><div id="auditView"><div class="status">Audit is available to administrators.</div></div></div>
       </section>
 
       <section class="card" style="margin-top:14px"><h2>Source Trust and Reputation</h2><div class="meta">Computed trust combines base quality, authority, provider PageRank, freshness and conflict risk.</div><div id="trust"><div class="status">Loading trust scores...</div></div></section>
@@ -108,7 +108,7 @@
       const session = () => { try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} };
       const saveSession = (s) => localStorage.setItem(SESSION_KEY, JSON.stringify({...s, expiresAt: Date.now()+8*60*60*1000}));
       const clearSession = () => localStorage.removeItem(SESSION_KEY);
-      const authHeaders = () => session()?.access_token ? {Authorization:`Bearer ${session().access_token}`} : {};
+      const authHeaders = () => { const s=session(); const token=s?.id_token || s?.access_token; return token ? {Authorization:`Bearer ${token}`} : {}; };
       const currentUser = () => session()?.user || {};
       const currentUserEmail = () => String(currentUser().email || currentUser().username || '').toLowerCase();
       const isAdminUser = () => currentUser().role === 'admin';
@@ -206,9 +206,10 @@
       }
       async function refreshAll(){await refreshMetricsOnly();}
       $('refreshBtn').addEventListener('click',refreshAll);
+      $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{renderAudit(await api('/api/audit?limit=50')); await refreshMetricsOnly();}catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
 
       function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{},Object.keys(d.sources||{}).map(s=>el('span',{class:'tag'},[s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${(d.columns||[]).join(', ')}`])]))); root.appendChild(cards);}
-      function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet.']));return;} const clean=rows.slice(0,8).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),actor:a.actor_email||'',role:a.effective_role||a.actor_role||'',decision:a.allowed===false?'denied':'allowed',price:a.price??'',query:(a.raw_query||'').slice(0,80)})); root.appendChild(table(clean,760)); root.appendChild(el('details',{},[el('summary',{},['Audit details']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
+      function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet. Run a query to create an audit record.']));return;} const clean=rows.slice(0,12).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),user:a.actor_email||a.actor_username||a.actor_sub||'',role:a.effective_role||a.actor_role||'',purpose:a.purpose||'',decision:a.allowed===false?'denied':'allowed',source:(a.selected_plan?.sources||[]).join(', '),price:a.price??'',query:(a.raw_query||'').slice(0,90)})); root.appendChild(table(clean,980)); root.appendChild(el('details',{},[el('summary',{},['Audit details']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
       function sourceOrder(s){ const t=(s.source_type||'').toLowerCase(); if(t==='csv')return 1; if(t==='sqlite')return 2; if(t==='api')return 3; return 9; }
       function renderTrust(data){
         const root=$('trust');

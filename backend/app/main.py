@@ -182,6 +182,8 @@ def query(req: QueryRequest, user=Depends(get_current_user)):
     effective_role = requested_role if user.get("role") == "admin" else str(user.get("role") or requested_role)
     audit_base = {
         "actor_email": user.get("email"),
+        "actor_username": user.get("username"),
+        "actor_sub": user.get("sub"),
         "actor_role": user.get("role"),
         "requested_role": requested_role,
         "effective_role": effective_role,

@@ -410,14 +410,45 @@ def _role_from_groups(groups: Any) -> str:
     return "researcher"
 
 
+
+def _looks_like_email(value: Any) -> bool:
+    return isinstance(value, str) and "@" in value and "." in value.split("@")[-1]
+
+
+def _cognito_email_for_username(username: str | None) -> dict[str, str]:
+    """Resolve Cognito access-token username/sub to human email for audit display.
+
+    Access tokens often do not include the email claim. In that case the
+    backend looks up the user in the configured Cognito pool, so audit rows show
+    real emails instead of UUID-style Cognito usernames.
+    """
+    if not username or auth_provider() != "cognito":
+        return {}
+    try:
+        cfg = _cognito_settings()
+        resp = _cognito_client().admin_get_user(UserPoolId=cfg["user_pool_id"], Username=username)
+        attrs = {a["Name"]: a.get("Value", "") for a in resp.get("UserAttributes", [])}
+        return {"email": attrs.get("email", ""), "name": attrs.get("name", "") or attrs.get("email", "")}
+    except Exception:
+        return {}
+
 def _cognito_user_from_claims(claims: dict[str, Any]) -> dict[str, Any]:
     groups = claims.get("cognito:groups") or []
     role = _role_from_groups(groups)
+    username = claims.get("cognito:username") or claims.get("username") or claims.get("sub")
+    email = claims.get("email")
+    name = claims.get("name") or claims.get("given_name")
+
+    if not _looks_like_email(email):
+        resolved = _cognito_email_for_username(str(username) if username else None)
+        email = resolved.get("email") or email or username
+        name = name or resolved.get("name")
+
     return {
         "sub": claims.get("sub"),
-        "email": claims.get("email") or claims.get("username") or claims.get("cognito:username"),
-        "name": claims.get("name") or claims.get("given_name") or claims.get("email"),
-        "username": claims.get("cognito:username") or claims.get("username"),
+        "email": email,
+        "name": name or email or username,
+        "username": username,
         "role": role,
         "status": "CONFIRMED",
         "provider": "cognito",
