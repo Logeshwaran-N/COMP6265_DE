@@ -138,6 +138,7 @@ def trust(user=Depends(get_current_user)):
 
 @app.get("/api/audit")
 def audit(limit: int = 50, user=Depends(get_current_user)):
+    require_admin_user(user)
     return read_audit(limit)
 
 

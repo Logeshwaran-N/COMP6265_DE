@@ -73,3 +73,45 @@ def test_local_forgot_password_flow():
     logged_in = client.post('/api/auth/login', json={'email': email, 'password': 'ResetPass@12345'})
     assert logged_in.status_code == 200
     assert logged_in.json()['user']['status'] == 'CONFIRMED'
+
+
+def test_admin_can_delete_other_user_but_not_self():
+    headers = login_admin()
+    email = 'delete-member@test.com'
+    client.delete(f'/api/admin/users/{email}', headers=headers)
+    created = client.post('/api/admin/users', headers=headers, json={
+        'email': email,
+        'temp_password': 'Temp@12345',
+        'role': 'researcher',
+        'name': 'Delete Member'
+    })
+    assert created.status_code == 200
+
+    removed = client.delete(f'/api/admin/users/{email}', headers=headers)
+    assert removed.status_code == 200
+    assert removed.json()['deleted'] == email
+
+    self_remove = client.delete('/api/admin/users/admin@test.com', headers=headers)
+    assert self_remove.status_code == 400
+    assert 'own account' in self_remove.json()['detail']
+
+
+def test_audit_requires_admin():
+    headers = login_admin()
+    email = 'audit-nonadmin@test.com'
+    client.delete(f'/api/admin/users/{email}', headers=headers)
+    client.post('/api/admin/users', headers=headers, json={
+        'email': email,
+        'temp_password': 'Temp@12345',
+        'role': 'researcher',
+        'name': 'Audit Non Admin'
+    })
+    challenge = client.post('/api/auth/login', json={'email': email, 'password': 'Temp@12345'}).json()
+    changed = client.post('/api/auth/new-password', json={
+        'email': email,
+        'session': challenge['session'],
+        'new_password': 'NewPass@12345'
+    })
+    member_headers = {'Authorization': 'Bearer ' + changed.json()['access_token']}
+    denied = client.get('/api/audit', headers=member_headers)
+    assert denied.status_code == 403
