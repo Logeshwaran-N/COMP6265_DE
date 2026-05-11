@@ -76,10 +76,10 @@ For the first backend test, before Amplify exists, you can temporarily use:
 FRONTEND_ORIGINS=*
 ```
 
-## 4. App Runner IAM instance role
+## 4. Backend IAM role
 
-The running backend must be allowed to call Cognito admin APIs.
-Attach an App Runner instance role with permissions like:
+The running backend must be allowed to call Cognito login, password-reset and admin-user APIs.
+For the current EC2 deployment, attach these permissions to the EC2 instance role. If you later use another compute service, attach the equivalent runtime role:
 
 ```json
 {
@@ -92,9 +92,12 @@ Attach an App Runner instance role with permissions like:
         "cognito-idp:AdminDeleteUser",
         "cognito-idp:AdminAddUserToGroup",
         "cognito-idp:AdminListGroupsForUser",
+        "cognito-idp:AdminResetUserPassword",
         "cognito-idp:ListUsers",
         "cognito-idp:InitiateAuth",
-        "cognito-idp:RespondToAuthChallenge"
+        "cognito-idp:RespondToAuthChallenge",
+        "cognito-idp:ForgotPassword",
+        "cognito-idp:ConfirmForgotPassword"
       ],
       "Resource": "arn:aws:cognito-idp:<region>:<account-id>:userpool/<user-pool-id>"
     }

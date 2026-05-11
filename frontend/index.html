@@ -5,15 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Data Economy Platform</title>
     <style>
-      :root{--bg:#0b1220;--panel:rgba(255,255,255,.06);--panel2:rgba(15,23,42,.72);--border:rgba(255,255,255,.11);--text:rgba(255,255,255,.93);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--purple:#a78bfa}
-      *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(1000px 550px at 15% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(800px 500px at 85% 12%,rgba(167,139,250,.18),transparent 58%),var(--bg);color:var(--text)}
-      button,input,select,textarea{font:inherit} button{cursor:pointer;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;gap:8px;font-weight:650}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.6;cursor:not-allowed}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.04);border-color:var(--border)}
-      input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:10px 12px;outline:none} option{background:#101827;color:var(--text)} textarea{min-height:128px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45} label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
-      .login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(430px,100%);border:1px solid var(--border);border-radius:26px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(15,23,42,.78));box-shadow:0 28px 80px rgba(0,0,0,.38)}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.small{font-size:12px;color:var(--muted2);line-height:1.45;margin-top:12px}.msg{margin-top:12px}.status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}
-      .wrap{max-width:1220px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:24px;letter-spacing:-.03em}.title .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:300px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:16px;padding:13px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:20px;margin-top:5px}.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel2);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.hidden{display:none!important}
-      table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.04);position:sticky;top:0}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}pre{margin:0;max-height:290px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.035);font-size:12px}details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}.trust-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}
-      @media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.admin-grid{grid-template-columns:1fr}.grid3,.trust-cards,.metrics{grid-template-columns:1fr}.wrap{padding:14px}}
+      :root{--bg:#0b1220;--panel:rgba(15,23,42,.76);--panel2:rgba(255,255,255,.055);--border:rgba(255,255,255,.12);--text:rgba(255,255,255,.94);--muted:rgba(255,255,255,.68);--muted2:rgba(255,255,255,.48);--accent:#60a5fa;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--purple:#a78bfa}*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:radial-gradient(900px 520px at 12% 0%,rgba(96,165,250,.25),transparent 60%),radial-gradient(820px 500px at 86% 8%,rgba(167,139,250,.18),transparent 58%),var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid rgba(96,165,250,.28);background:rgba(96,165,250,.18);color:var(--text);border-radius:12px;padding:10px 13px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650}button:hover{background:rgba(96,165,250,.25)}button:disabled{opacity:.62;cursor:not-allowed}.danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.13)}.ghost{background:rgba(255,255,255,.04);border-color:var(--border)}input,select,textarea{width:100%;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);padding:10px 12px;outline:none}option{background:#101827;color:var(--text)}textarea{min-height:128px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.45}label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:22px}.login-card{width:min(450px,100%);border:1px solid var(--border);border-radius:26px;padding:28px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(15,23,42,.80));box-shadow:0 28px 80px rgba(0,0,0,.38)}.logo{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:rgba(96,165,250,.18);border:1px solid rgba(96,165,250,.30);font-weight:900;font-size:20px;margin-bottom:14px}.login h1{margin:0;font-size:28px;letter-spacing:-.04em}.login p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 18px}.linkbtn{border:0;background:transparent;color:var(--accent);padding:8px 0;font-weight:700}.msg{margin-top:12px}.status{padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);line-height:1.45}.status.ok{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.12)}.status.bad{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.10)}.status.warn{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.10)}.wrap{max-width:1240px;margin:0 auto;padding:22px}.top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:16px}.title h1{margin:0;font-size:24px;letter-spacing:-.03em}.title .sub{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);border-radius:999px;padding:8px 10px;color:var(--muted);font-size:12px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.metric{border:1px solid var(--border);background:rgba(255,255,255,.045);border-radius:16px;padding:13px}.metric span{color:var(--muted);font-size:12px}.metric b{display:block;font-size:20px;margin-top:5px}.grid{display:grid;grid-template-columns:1.04fr .96fr;gap:14px;margin-top:14px}.card{border:1px solid var(--border);background:var(--panel);border-radius:18px;padding:15px;box-shadow:0 18px 40px rgba(0,0,0,.22)}.card h2{margin:0 0 8px;font-size:16px}.meta{color:var(--muted);font-size:12px;line-height:1.45}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.check{display:flex;align-items:center;gap:10px;margin-top:10px}.check input{width:auto}.panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.admin-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:14px}.table-wrap{overflow:auto;border-radius:14px;border:1px solid var(--border);margin-top:10px}table{width:100%;border-collapse:collapse;min-width:650px;background:rgba(0,0,0,.08)}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;font-size:12px;vertical-align:top}th{color:var(--muted);background:rgba(255,255,255,.04);position:sticky;top:0}.tag{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.04);padding:6px 10px;border-radius:999px;margin:6px 6px 0 0}details{margin-top:10px}summary{cursor:pointer;color:var(--muted)}pre{margin:0;max-height:300px;overflow:auto;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.035);font-size:12px}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}.source-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10);overflow:hidden;margin-top:10px}.bar>div{height:100%}.row-actions{display:flex;gap:8px;flex-wrap:wrap}.footer{color:var(--muted2);font-size:12px;margin-top:14px;text-align:center}@media(max-width:1050px){.top{flex-direction:column}.actions{justify-content:flex-start}.grid,.panel-grid,.admin-grid{grid-template-columns:1fr}.grid3,.source-cards,.metrics,.cards{grid-template-columns:1fr}.wrap{padding:14px}}
     </style>
   </head>
   <body>
@@ -25,13 +17,26 @@
         <form id="loginForm">
           <label>Email</label><input id="emailInput" type="email" autocomplete="username" placeholder="admin@test.com" required />
           <label>Password</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="Password" required />
-          <button id="loginBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Sign in</button>
+          <button id="loginBtn" type="submit" style="width:100%;margin-top:14px">Sign in</button>
+          <button id="showForgotBtn" class="linkbtn" type="button" style="width:100%;margin-top:8px">Forgot password?</button>
         </form>
         <form id="newPasswordForm" class="hidden">
           <label>New password</label><input id="newPasswordInput" type="password" autocomplete="new-password" required />
           <label>Confirm new password</label><input id="confirmPasswordInput" type="password" autocomplete="new-password" required />
-          <button id="setPasswordBtn" type="submit" style="width:100%;justify-content:center;margin-top:14px">Set password and continue</button>
-          <button id="backToLoginBtn" class="ghost" type="button" style="width:100%;justify-content:center;margin-top:10px">Back to login</button>
+          <button id="setPasswordBtn" type="submit" style="width:100%;margin-top:14px">Set password and continue</button>
+          <button id="backToLoginBtn" class="ghost" type="button" style="width:100%;margin-top:10px">Back to sign in</button>
+        </form>
+        <form id="forgotStartForm" class="hidden">
+          <label>Account email</label><input id="forgotEmailInput" type="email" autocomplete="username" required />
+          <button id="sendResetBtn" type="submit" style="width:100%;margin-top:14px">Send reset code</button>
+          <button class="ghost authBackBtn" type="button" style="width:100%;margin-top:10px">Back to sign in</button>
+        </form>
+        <form id="forgotConfirmForm" class="hidden">
+          <label>Reset code</label><input id="resetCodeInput" type="text" inputmode="numeric" autocomplete="one-time-code" required />
+          <label>New password</label><input id="resetPasswordInput" type="password" autocomplete="new-password" required />
+          <label>Confirm new password</label><input id="resetConfirmInput" type="password" autocomplete="new-password" required />
+          <button id="confirmResetBtn" type="submit" style="width:100%;margin-top:14px">Reset password</button>
+          <button class="ghost authBackBtn" type="button" style="width:100%;margin-top:10px">Back to sign in</button>
         </form>
         <div id="authMessage" class="msg"></div>
       </div>
@@ -39,13 +44,13 @@
 
     <main id="appShell" class="wrap hidden">
       <div class="top">
-        <div class="title"><h1>Trust-Aware Federated Data Economy Platform</h1><div class="sub">Query distributed CSV, database and API sources with policy checks, trust-aware conflict resolution, query pricing and audit evidence.</div></div>
+        <div class="title"><h1>Trust-Aware Federated Data Economy Platform</h1><div class="sub">Query distributed CSV, database and API sources with policy checks, source trust, pricing and audit evidence.</div></div>
         <div class="actions"><span id="userBadge" class="pill">Signed in</span><button id="adminToggleBtn" class="ghost hidden" type="button">Admin</button><button id="refreshBtn" class="ghost" type="button">Refresh</button><button id="logoutBtn" type="button">Logout</button></div>
       </div>
 
       <section id="adminPanel" class="card hidden" style="margin-bottom:14px">
         <h2>User administration</h2>
-        <div class="meta">Create users with a temporary password. On first login they must set a new password.</div>
+        <div class="meta">Create members, inspect accounts and trigger a password reset when needed.</div>
         <div class="admin-grid" style="margin-top:8px">
           <form id="createUserForm">
             <label>Email</label><input id="newUserEmail" type="email" placeholder="member@example.com" required />
@@ -76,11 +81,16 @@
           <label class="check"><input id="conflictsChk" type="checkbox" checked /> Include provenance when conflicts exist</label>
           <button id="runBtn" type="button" style="margin-top:12px">Run query</button>
         </div>
-        <div class="card"><h2>Result</h2><div id="result"><div class="status">Run a query to view result rows, source plan, price and provenance.</div></div></div>
+        <div class="card"><h2>Result</h2><div id="result"><div class="status">Run a query to view result rows, execution plan, price and provenance.</div></div></div>
       </section>
 
-      <section class="card" style="margin-top:14px"><h2>Source Trust</h2><div id="trust"><div class="status">Trust scores will load after refresh.</div></div></section>
-      <div class="footer">Prototype for COMP6265 Data Economy coursework</div>
+      <section class="panel-grid">
+        <div class="card"><h2>Data Catalogue</h2><div class="meta">Virtual datasets mapped to available physical sources.</div><div id="catalogueView"><div class="status">Loading catalogue...</div></div></div>
+        <div class="card"><h2>Governance Audit</h2><div class="meta">Recent policy, pricing and access decisions recorded by the backend.</div><div id="auditView"><div class="status">Loading audit events...</div></div></div>
+      </section>
+
+      <section class="card" style="margin-top:14px"><h2>Source Trust and Reputation</h2><div class="meta">Computed trust combines base quality, authority, provider PageRank, freshness and conflict risk.</div><div id="trust"><div class="status">Loading trust scores...</div></div></section>
+      <div class="footer">COMP6265 Data Economy coursework platform</div>
     </main>
 
     <script type="module">
@@ -91,6 +101,7 @@
       const backendBase = configuredBase && !(configuredBase.includes("localhost") && !localHosts.includes(browserHost)) ? configuredBase.replace(/\/$/, "") : `${browserProtocol}//${browserHost}:8000`;
       const SESSION_KEY = "comp6265_de_session";
       let pendingChallenge = null;
+      let resetEmail = "";
 
       const $ = (id) => document.getElementById(id);
       const el = (tag, attrs={}, children=[]) => { const n=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='class')n.className=v; else if(k==='style')n.setAttribute('style',v); else if(k.startsWith('on') && typeof v==='function')n.addEventListener(k.slice(2),v); else n.setAttribute(k,v); }); children.forEach(c=>n.appendChild(typeof c==='string'?document.createTextNode(c):c)); return n; };
@@ -99,6 +110,8 @@
       const clearSession = () => localStorage.removeItem(SESSION_KEY);
       const authHeaders = () => session()?.access_token ? {Authorization:`Bearer ${session().access_token}`} : {};
       function msg(text, kind=''){ const root=$('authMessage'); root.innerHTML=''; if(text) root.appendChild(el('div',{class:`status ${kind}`},[text])); }
+      function hideAuthForms(){ ['loginForm','newPasswordForm','forgotStartForm','forgotConfirmForm'].forEach(id=>$(id).classList.add('hidden')); }
+      function showLogin(){ pendingChallenge=null; hideAuthForms(); $('loginForm').classList.remove('hidden'); $('loginIntro').textContent='Sign in with an account created by the platform administrator.'; msg(''); }
 
       async function api(path, options={}){
         let res;
@@ -117,13 +130,10 @@
           const isAdmin = u.role === 'admin'; $('adminToggleBtn').classList.toggle('hidden', !isAdmin); $('adminPanel').classList.add('hidden');
           applyRole(u); refreshAll(); return;
         }
-        clearSession(); $('loginScreen').classList.remove('hidden'); $('appShell').classList.add('hidden');
+        clearSession(); $('loginScreen').classList.remove('hidden'); $('appShell').classList.add('hidden'); showLogin();
       }
 
-      function applyRole(user){
-        if(user.role === 'admin'){ $('roleSelect').disabled=false; return; }
-        $('roleSelect').value = user.role || 'researcher'; $('roleSelect').disabled=true;
-      }
+      function applyRole(user){ if(user.role === 'admin'){ $('roleSelect').disabled=false; return; } $('roleSelect').value = user.role || 'researcher'; $('roleSelect').disabled=true; }
 
       $('loginForm').addEventListener('submit', async (ev)=>{
         ev.preventDefault(); msg('Signing in...'); $('loginBtn').disabled=true;
@@ -131,7 +141,7 @@
           const res = await api('/api/auth/login',{method:'POST', body:JSON.stringify({email:$('emailInput').value.trim(), password:$('passwordInput').value})});
           if(res.challenge === 'NEW_PASSWORD_REQUIRED'){
             pendingChallenge = {session:res.session, email:$('emailInput').value.trim(), user:res.user};
-            $('loginForm').classList.add('hidden'); $('newPasswordForm').classList.remove('hidden'); $('loginIntro').textContent='Set a new password to activate your account.'; msg('Temporary password accepted. Please set a new password.','ok'); return;
+            hideAuthForms(); $('newPasswordForm').classList.remove('hidden'); $('loginIntro').textContent='Set a new password to activate your account.'; msg('Temporary password accepted. Please set a new password.','ok'); return;
           }
           saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth();
         }catch(e){ msg(e.message,'bad'); } finally { $('loginBtn').disabled=false; }
@@ -139,12 +149,23 @@
 
       $('newPasswordForm').addEventListener('submit', async (ev)=>{
         ev.preventDefault(); const p=$('newPasswordInput').value, c=$('confirmPasswordInput').value; if(p!==c){msg('Passwords do not match.','bad');return;} $('setPasswordBtn').disabled=true;
-        try{
-          const res = await api('/api/auth/new-password',{method:'POST', body:JSON.stringify({email:pendingChallenge?.email, session:pendingChallenge?.session, new_password:p})});
-          pendingChallenge=null; saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth();
-        }catch(e){ msg(e.message,'bad'); } finally { $('setPasswordBtn').disabled=false; }
+        try{ const res = await api('/api/auth/new-password',{method:'POST', body:JSON.stringify({email:pendingChallenge?.email, session:pendingChallenge?.session, new_password:p})}); pendingChallenge=null; saveSession({access_token:res.access_token, id_token:res.id_token, user:res.user}); msg(''); renderAuth(); }
+        catch(e){ msg(e.message,'bad'); } finally { $('setPasswordBtn').disabled=false; }
       });
-      $('backToLoginBtn').addEventListener('click',()=>{pendingChallenge=null; $('newPasswordForm').classList.add('hidden'); $('loginForm').classList.remove('hidden'); $('loginIntro').textContent='Sign in with an account created by the platform administrator.'; msg('');});
+
+      $('showForgotBtn').addEventListener('click',()=>{ hideAuthForms(); $('forgotStartForm').classList.remove('hidden'); $('forgotEmailInput').value=$('emailInput').value.trim(); $('loginIntro').textContent='Request a password reset code for your approved account.'; msg(''); });
+      [...document.querySelectorAll('.authBackBtn'), $('backToLoginBtn')].forEach(btn=>btn.addEventListener('click', showLogin));
+      $('forgotStartForm').addEventListener('submit', async (ev)=>{
+        ev.preventDefault(); resetEmail=$('forgotEmailInput').value.trim(); $('sendResetBtn').disabled=true; msg('Requesting reset code...');
+        try{ const res = await api('/api/auth/forgot-password',{method:'POST', body:JSON.stringify({email:resetEmail})}); hideAuthForms(); $('forgotConfirmForm').classList.remove('hidden'); $('loginIntro').textContent='Enter the reset code sent to your email.'; const codeNote=res.reset_code?` Local reset code: ${res.reset_code}`:''; msg((res.message||'Reset code requested.')+codeNote,'ok'); }
+        catch(e){ msg(e.message,'bad'); } finally { $('sendResetBtn').disabled=false; }
+      });
+      $('forgotConfirmForm').addEventListener('submit', async (ev)=>{
+        ev.preventDefault(); const p=$('resetPasswordInput').value, c=$('resetConfirmInput').value; if(p!==c){msg('Passwords do not match.','bad');return;} $('confirmResetBtn').disabled=true;
+        try{ const res=await api('/api/auth/confirm-forgot-password',{method:'POST', body:JSON.stringify({email:resetEmail, confirmation_code:$('resetCodeInput').value.trim(), new_password:p})}); showLogin(); msg(res.message||'Password reset completed. Sign in with the new password.','ok'); }
+        catch(e){ msg(e.message,'bad'); } finally { $('confirmResetBtn').disabled=false; }
+      });
+
       $('logoutBtn').addEventListener('click',()=>{clearSession(); renderAuth();});
       $('adminToggleBtn').addEventListener('click',()=>{ $('adminPanel').classList.toggle('hidden'); if(!$('adminPanel').classList.contains('hidden')) loadUsers(); });
 
@@ -159,21 +180,22 @@
       function loadExample(i){const e=EXAMPLES[i]; $('queryInput').value=e.query; if(!$('roleSelect').disabled)$('roleSelect').value=e.role; $('purposeSelect').value=e.purpose; $('strategySelect').value=e.strategy; $('verifyChk').checked=e.verify;}
       $('exampleSelect').addEventListener('change',()=>loadExample(Number($('exampleSelect').value))); loadExample(0);
 
-      function table(rows){ if(!rows?.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(rows[0]); return el('div',{class:'table-wrap'},[el('table',{},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[c])))]),el('tbody',{},rows.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
+      function table(rows, minWidth=650){ if(!rows?.length)return el('div',{class:'status'},['No rows returned.']); const cols=Object.keys(rows[0]); return el('div',{class:'table-wrap'},[el('table',{style:`min-width:${minWidth}px`},[el('thead',{},[el('tr',{},cols.map(c=>el('th',{},[c])))]),el('tbody',{},rows.map(r=>el('tr',{},cols.map(c=>el('td',{},[String(r[c]??'')])))))])]); }
       function renderMetrics(data){const items=[['Datasets',Object.keys(data.catalogue||{}).length],['Sources',(data.sources||[]).length],['Trust scores',Object.keys(data.trust?.sources||{}).length],['Audit events',(data.audit||[]).length]]; $('metrics').innerHTML=''; items.forEach(([l,v])=>$('metrics').appendChild(el('div',{class:'metric'},[el('span',{},[l]),el('b',{},[String(v)])])));}
-      function renderResult(r){const root=$('result'); root.innerHTML=''; root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`])); if(r.selected_plan?.plan_id){const p=r.selected_plan; root.appendChild(el('div',{style:'margin-top:10px'},[el('div',{},[`Selected plan: ${p.plan_id}`]),el('div',{},[el('span',{class:'tag'},[`mode: ${p.mode}`]),el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),el('span',{class:'tag'},[`cost: ${p.estimated_execution_cost}`]),el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`])]),el('div',{class:'meta'},[p.explanation||''])]));} if(r.pricing?.total_user_price!=null){root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));} if(r.result_rows?.length)root.appendChild(table(r.result_rows)); if(r.conflicts?.length)root.appendChild(el('details',{},[el('summary',{},[`Provenance and conflicts (${r.conflicts.length})`]),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])); if(r.candidate_plans?.length)root.appendChild(el('details',{},[el('summary',{},[`Execution plan candidates (${r.candidate_plans.length})`]),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])); if(r.policy_decision && Object.keys(r.policy_decision).length)root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));}
-
+      function renderResult(r){const root=$('result'); root.innerHTML=''; root.appendChild(el('div',{class:`status ${r.ok?'ok':'bad'}`},[`${r.ok?'Approved':'Denied/Error'}: ${r.message||''}`])); if(r.selected_plan?.plan_id){const p=r.selected_plan; root.appendChild(el('div',{style:'margin-top:10px'},[el('div',{},[`Selected plan: ${p.plan_id}`]),el('div',{},[el('span',{class:'tag'},[`mode: ${p.mode}`]),el('span',{class:'tag'},[`trust: ${p.mean_trust}`]),el('span',{class:'tag'},[`cost: ${p.estimated_execution_cost}`]),el('span',{class:'tag'},[`latency: ${p.estimated_latency_ms}ms`])]),el('div',{class:'meta'},[p.explanation||''])]));} if(r.pricing?.total_user_price!=null){root.appendChild(el('div',{class:'status ok',style:'margin-top:10px'},[`Price: ${r.pricing.total_user_price} ${r.pricing.currency||'credits'}`]));} if(r.result_rows?.length)root.appendChild(table(r.result_rows)); if(r.conflicts?.length)root.appendChild(el('details',{},[el('summary',{},[`Provenance and conflicts (${r.conflicts.length})`]),el('pre',{},[JSON.stringify(r.conflicts,null,2)])])); if(r.candidate_plans?.length)root.appendChild(el('details',{},[el('summary',{},[`Advanced: candidate execution plans (${r.candidate_plans.length})`]),el('pre',{},[JSON.stringify(r.candidate_plans,null,2)])])); if(r.policy_decision && Object.keys(r.policy_decision).length)root.appendChild(el('details',{},[el('summary',{},['Policy decision']),el('pre',{},[JSON.stringify(r.policy_decision,null,2)])]));}
       async function runQuery(){ $('runBtn').disabled=true; $('runBtn').textContent='Running...'; try{const payload={query:$('queryInput').value, role:$('roleSelect').value, purpose:$('purposeSelect').value, strategy:$('strategySelect').value, verification:$('verifyChk').checked, show_all_conflicts:$('conflictsChk').checked}; renderResult(await api('/api/query',{method:'POST',body:JSON.stringify(payload)})); await refreshMetricsOnly();}catch(e){renderResult({ok:false,message:e.message});}finally{$('runBtn').disabled=false;$('runBtn').textContent='Run query';}}
       $('runBtn').addEventListener('click',runQuery);
 
-      async function refreshMetricsOnly(){try{const [catalogue,sources,audit,trust]=await Promise.all([api('/api/catalogue'),api('/api/sources'),api('/api/audit?limit=50'),api('/api/trust')]); renderMetrics({catalogue,sources,audit,trust}); renderTrust(trust);}catch(e){$('metrics').innerHTML='';}}
+      async function refreshMetricsOnly(){try{const [catalogue,sources,audit,trust]=await Promise.all([api('/api/catalogue'),api('/api/sources'),api('/api/audit?limit=50'),api('/api/trust')]); renderMetrics({catalogue,sources,audit,trust}); renderTrust(trust); renderCatalogue(catalogue); renderAudit(audit);}catch(e){$('metrics').innerHTML='';}}
       async function refreshAll(){await refreshMetricsOnly();}
       $('refreshBtn').addEventListener('click',refreshAll);
 
-      function renderTrust(data){const root=$('trust'); const sources=Object.values(data.sources||{}).sort((a,b)=>(b.computed_trust||0)-(a.computed_trust||0)); root.innerHTML=''; const cards=el('div',{class:'trust-cards'},sources.map(s=>{const pct=Math.round((s.computed_trust||0)*100); const color=(s.computed_trust||0)>.8?'rgba(34,197,94,.85)':(s.computed_trust||0)>.6?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)'; return el('div',{class:'card'},[el('div',{style:'display:flex;justify-content:space-between;gap:10px'},[el('strong',{},[s.source_name||'source']),el('strong',{style:'color:var(--accent)'},[`${pct}%`])]),el('div',{class:'meta'},[`${s.dataset||''} • ${s.source_type||''} • ${s.provider||''}`]),el('div',{class:'bar'},[el('div',{style:`width:${pct}%;background:${color}`})]),el('div',{class:'meta',style:'margin-top:10px'},[`base ${s.base_trust} • authority ${s.authority_level} • PageRank ${s.pagerank_reputation} • freshness ${s.freshness_score}`])]);})); root.appendChild(cards);}
+      function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{},Object.keys(d.sources||{}).map(s=>el('span',{class:'tag'},[s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${(d.columns||[]).join(', ')}`])]))); root.appendChild(cards);}
+      function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet.']));return;} const clean=rows.slice(0,8).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),actor:a.actor_email||'',role:a.effective_role||a.actor_role||'',decision:a.allowed===false?'denied':'allowed',price:a.price??'',query:(a.raw_query||'').slice(0,80)})); root.appendChild(table(clean,760)); root.appendChild(el('details',{},[el('summary',{},['Advanced audit payload']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
+      function renderTrust(data){const root=$('trust'); const sources=Object.values(data.sources||{}).sort((a,b)=>(b.computed_trust||0)-(a.computed_trust||0)); root.innerHTML=''; if(!sources.length){root.appendChild(el('div',{class:'status'},['No trust scores found.']));return;} const cards=el('div',{class:'source-cards'},sources.map(s=>{const pct=Math.round((s.computed_trust||0)*100); const color=(s.computed_trust||0)>.8?'rgba(34,197,94,.85)':(s.computed_trust||0)>.6?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)'; return el('div',{class:'card'},[el('div',{style:'display:flex;justify-content:space-between;gap:10px'},[el('strong',{},[s.source_name||'source']),el('strong',{style:'color:var(--accent)'},[`${pct}%`])]),el('div',{class:'meta'},[`${s.dataset||''} • ${s.source_type||''} • ${s.provider||''}`]),el('div',{class:'bar'},[el('div',{style:`width:${pct}%;background:${color}`})]),el('div',{class:'meta',style:'margin-top:10px'},[`authority ${s.authority_level} • PageRank ${s.pagerank_reputation} • freshness ${s.freshness_score} • risk ${s.conflict_risk}`])]);})); root.appendChild(cards);}
 
       async function loadUsers(){const q=encodeURIComponent($('userSearch').value.trim()); try{const data=await api(`/api/admin/users?search=${q}`); renderUsers(data.users||[]);}catch(e){$('usersList').innerHTML=''; $('usersList').appendChild(el('div',{class:'status bad'},[e.message]));}}
-      function renderUsers(users){const root=$('usersList'); root.innerHTML=''; if(!users.length){root.appendChild(el('div',{class:'status'},['No users found.']));return;} const rows=users.map(u=>({email:u.email,name:u.name,role:u.role,status:u.status,enabled:u.enabled?'yes':'no',action:''})); const t=table(rows); root.appendChild(t); [...root.querySelectorAll('tbody tr')].forEach((tr,i)=>{const td=tr.lastChild; td.textContent=''; const email=users[i].email; const btn=el('button',{class:'danger',type:'button',onclick:async()=>{if(!confirm(`Remove ${email}?`))return; try{await api(`/api/admin/users/${encodeURIComponent(email)}`,{method:'DELETE'}); await loadUsers();}catch(e){alert(e.message);}}},['Remove']); td.appendChild(btn);});}
+      function renderUsers(users){const root=$('usersList'); root.innerHTML=''; if(!users.length){root.appendChild(el('div',{class:'status'},['No users found.']));return;} const rows=users.map(u=>({email:u.email,name:u.name,role:u.role,status:u.status,enabled:u.enabled?'yes':'no',action:''})); const t=table(rows,760); root.appendChild(t); [...root.querySelectorAll('tbody tr')].forEach((tr,i)=>{const td=tr.lastChild; td.textContent=''; const email=users[i].email; const wrap=el('div',{class:'row-actions'}); const reset=el('button',{class:'ghost',type:'button',onclick:async()=>{if(!confirm(`Send password reset for ${email}?`))return; try{const res=await api(`/api/admin/users/${encodeURIComponent(email)}/reset-password`,{method:'POST'}); alert(res.message || 'Password reset started.');}catch(e){alert(e.message);}}},['Reset']); const remove=el('button',{class:'danger',type:'button',onclick:async()=>{if(!confirm(`Remove ${email}?`))return; try{await api(`/api/admin/users/${encodeURIComponent(email)}`,{method:'DELETE'}); await loadUsers();}catch(e){alert(e.message);}}},['Remove']); wrap.append(reset,remove); td.appendChild(wrap);});}
       $('userSearch').addEventListener('input',()=>{clearTimeout(window.__userSearchTimer); window.__userSearchTimer=setTimeout(loadUsers,250);});
       $('createUserForm').addEventListener('submit',async(ev)=>{ev.preventDefault(); $('createUserBtn').disabled=true; try{await api('/api/admin/users',{method:'POST',body:JSON.stringify({email:$('newUserEmail').value.trim(),name:$('newUserName').value.trim()||null,role:$('newUserRole').value,temp_password:$('newUserPassword').value})}); $('newUserEmail').value=''; $('newUserName').value=''; await loadUsers();}catch(e){alert(e.message);}finally{$('createUserBtn').disabled=false;}});
 

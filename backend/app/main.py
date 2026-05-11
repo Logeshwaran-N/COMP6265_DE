@@ -6,14 +6,14 @@ from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from .audit import read_audit, write_audit
-from .auth import auth_required, get_current_user, login as auth_login, complete_new_password, change_local_password, list_users, create_user, delete_user, require_admin_user, auth_provider
+from .auth import auth_required, get_current_user, login as auth_login, complete_new_password, change_local_password, forgot_password, confirm_forgot_password, list_users, create_user, delete_user, reset_user_password, require_admin_user, auth_provider
 from .catalogue import get_catalogue, list_sources
 from .errors import InvalidQueryError, QueryError
 from .engine.executor import execute_plan
 from .engine.optimizer import choose_plan
 from .engine.policy import evaluate_policy
 from .logging_config import configure_logging
-from .models import QueryRequest, QueryResponse, LoginRequest, NewPasswordRequest, PasswordChangeRequest, AdminCreateUserRequest
+from .models import QueryRequest, QueryResponse, LoginRequest, NewPasswordRequest, PasswordChangeRequest, ForgotPasswordRequest, ConfirmForgotPasswordRequest, AdminCreateUserRequest
 from .parser import parse_query
 from .seed import ensure_seed_data
 
@@ -55,6 +55,17 @@ def auth_new_password_endpoint(req: NewPasswordRequest):
     return complete_new_password(req.email, req.session, req.new_password)
 
 
+
+
+@app.post("/api/auth/forgot-password")
+def auth_forgot_password_endpoint(req: ForgotPasswordRequest):
+    return forgot_password(req.email)
+
+
+@app.post("/api/auth/confirm-forgot-password")
+def auth_confirm_forgot_password_endpoint(req: ConfirmForgotPasswordRequest):
+    return confirm_forgot_password(req.email, req.confirmation_code, req.new_password)
+
 @app.post("/api/auth/change-password")
 def auth_change_password_endpoint(req: PasswordChangeRequest, user=Depends(get_current_user)):
     if auth_provider() != "local":
@@ -74,6 +85,15 @@ def admin_create_user(req: AdminCreateUserRequest, user=Depends(get_current_user
     created = create_user(req.email, req.temp_password, req.role.value if hasattr(req.role, "value") else str(req.role), req.name)
     return {"ok": True, "user": created}
 
+
+
+
+@app.post("/api/admin/users/{email}/reset-password")
+def admin_reset_password(email: str, user=Depends(get_current_user)):
+    require_admin_user(user)
+    if email.strip().lower() == str(user.get("email", "")).strip().lower():
+        return reset_user_password(email)
+    return reset_user_password(email)
 
 @app.delete("/api/admin/users/{email}")
 def admin_delete_user(email: str, user=Depends(get_current_user)):

@@ -165,6 +165,18 @@ class NewPasswordRequest(BaseModel):
     email: Optional[str] = Field(default=None, max_length=320)
 
 
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+
+
+class ConfirmForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    confirmation_code: str = Field(..., min_length=3, max_length=256)
+    new_password: str = Field(..., min_length=6, max_length=256)
+
+
 class PasswordChangeRequest(BaseModel):
     current_password: str = Field(..., min_length=1, max_length=256)
     new_password: str = Field(..., min_length=6, max_length=256)

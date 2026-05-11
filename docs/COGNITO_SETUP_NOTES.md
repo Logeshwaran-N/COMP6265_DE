@@ -42,3 +42,23 @@ python scripts/setup_cognito_groups_admin.py \
 ```
 
 This creates the expected groups and the initial admin user if missing.
+
+## Password reset flow
+
+The app supports two reset paths:
+
+```text
+User forgot password -> /api/auth/forgot-password -> Cognito ForgotPassword
+User enters code      -> /api/auth/confirm-forgot-password -> Cognito ConfirmForgotPassword
+Admin reset user      -> /api/admin/users/{email}/reset-password -> Cognito AdminResetUserPassword
+```
+
+For Cognito mode, the user must have a verified email address and Cognito email delivery must be configured or available. For local development mode, the backend returns a temporary reset code in the API response because there is no email service.
+
+The EC2/backend IAM role needs these additional actions:
+
+```text
+cognito-idp:ForgotPassword
+cognito-idp:ConfirmForgotPassword
+cognito-idp:AdminResetUserPassword
+```

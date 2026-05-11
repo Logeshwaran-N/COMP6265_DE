@@ -210,6 +210,68 @@ def change_local_password(current_user: dict[str, Any], current_password: str, n
         return {"ok": True, "user": _public_user(user)}
 
 
+def _hash_reset_code(code: str) -> str:
+    digest = hmac.new(_token_secret().encode("utf-8"), code.encode("utf-8"), hashlib.sha256).hexdigest()
+    return digest
+
+
+def _issue_local_reset_code_for_user(email: str) -> dict[str, Any]:
+    """Create a short-lived local reset code.
+
+    Local mode has no email delivery service, so the code is returned to the
+    caller. Cognito mode sends the code by email through Cognito.
+    """
+    _ensure_user_store()
+    email = email.strip().lower()
+    with _USERS_LOCK:
+        users, user, idx = _find_local_user(email)
+        if not user or idx < 0 or not bool(user.get("enabled", True)):
+            # Avoid account enumeration. Return a generic success message.
+            return {"ok": True, "message": "If the account exists, a password reset code has been issued."}
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        user["reset_code_hash"] = _hash_reset_code(code)
+        user["reset_expires_at"] = _now() + 20 * 60
+        user["updated_at"] = _now()
+        users[idx] = user
+        _write_users_unlocked(users)
+        return {
+            "ok": True,
+            "message": "Password reset code generated for local development.",
+            "delivery": "local_development",
+            "reset_code": code,
+            "expires_in_seconds": 20 * 60,
+        }
+
+
+def forgot_local_password(email: str) -> dict[str, Any]:
+    return _issue_local_reset_code_for_user(email)
+
+
+def confirm_local_forgot_password(email: str, confirmation_code: str, new_password: str) -> dict[str, Any]:
+    email = email.strip().lower()
+    confirmation_code = confirmation_code.strip()
+    with _USERS_LOCK:
+        users, user, idx = _find_local_user(email)
+        if not user or idx < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reset code")
+        if int(user.get("reset_expires_at") or 0) < _now():
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset code has expired")
+        if not hmac.compare_digest(user.get("reset_code_hash", ""), _hash_reset_code(confirmation_code)):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reset code")
+        user["password_hash"] = _hash_password(new_password)
+        user["status"] = "CONFIRMED"
+        user.pop("reset_code_hash", None)
+        user.pop("reset_expires_at", None)
+        user["updated_at"] = _now()
+        users[idx] = user
+        _write_users_unlocked(users)
+        return {"ok": True, "message": "Password has been reset. You can sign in with the new password."}
+
+
+def reset_local_user_password(email: str) -> dict[str, Any]:
+    return _issue_local_reset_code_for_user(email)
+
+
 def list_local_users(query: str | None = None) -> list[dict[str, Any]]:
     _ensure_user_store()
     q = (query or "").strip().lower()
@@ -474,6 +536,47 @@ def delete_cognito_user(email: str) -> dict[str, Any]:
     return {"ok": True, "deleted": email}
 
 
+def forgot_cognito_password(email: str) -> dict[str, Any]:
+    cfg = _cognito_settings()
+    if not cfg["app_client_id"]:
+        raise HTTPException(status_code=500, detail="COGNITO_APP_CLIENT_ID is missing")
+    try:
+        resp = _cognito_client().forgot_password(ClientId=cfg["app_client_id"], Username=email.strip().lower())
+        delivery = resp.get("CodeDeliveryDetails") or {}
+        return {
+            "ok": True,
+            "message": "If the account exists, Cognito has sent a password reset code.",
+            "delivery": delivery,
+        }
+    except Exception as exc:
+        # Return the Cognito reason because users need to know about unverified email,
+        # missing delivery config, or rate limit issues during coursework testing.
+        raise HTTPException(status_code=400, detail=f"Could not start password reset: {exc}") from exc
+
+
+def confirm_cognito_forgot_password(email: str, confirmation_code: str, new_password: str) -> dict[str, Any]:
+    cfg = _cognito_settings()
+    try:
+        _cognito_client().confirm_forgot_password(
+            ClientId=cfg["app_client_id"],
+            Username=email.strip().lower(),
+            ConfirmationCode=confirmation_code.strip(),
+            Password=new_password,
+        )
+        return {"ok": True, "message": "Password has been reset. You can sign in with the new password."}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not confirm password reset: {exc}") from exc
+
+
+def reset_cognito_user_password(email: str) -> dict[str, Any]:
+    cfg = _cognito_settings()
+    try:
+        _cognito_client().admin_reset_user_password(UserPoolId=cfg["user_pool_id"], Username=email.strip().lower())
+        return {"ok": True, "message": "Password reset code sent through Cognito.", "email": email.strip().lower()}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not reset user password: {exc}") from exc
+
+
 def login(email: str, password: str) -> dict[str, Any]:
     return cognito_login(email, password) if auth_provider() == "cognito" else local_login(email, password)
 
@@ -484,6 +587,20 @@ def complete_new_password(email: str | None, session: str, new_password: str) ->
             raise HTTPException(status_code=400, detail="Email is required for Cognito password challenge")
         return complete_cognito_new_password(email, session, new_password)
     return complete_local_new_password(session, new_password)
+
+
+def forgot_password(email: str) -> dict[str, Any]:
+    return forgot_cognito_password(email) if auth_provider() == "cognito" else forgot_local_password(email)
+
+
+def confirm_forgot_password(email: str, confirmation_code: str, new_password: str) -> dict[str, Any]:
+    if auth_provider() == "cognito":
+        return confirm_cognito_forgot_password(email, confirmation_code, new_password)
+    return confirm_local_forgot_password(email, confirmation_code, new_password)
+
+
+def reset_user_password(email: str) -> dict[str, Any]:
+    return reset_cognito_user_password(email) if auth_provider() == "cognito" else reset_local_user_password(email)
 
 
 def list_users(query: str | None = None) -> list[dict[str, Any]]:
