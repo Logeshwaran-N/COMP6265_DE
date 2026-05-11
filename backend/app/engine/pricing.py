@@ -58,8 +58,15 @@ def calculate_price(query: ParsedQuery, selected_plan: CandidatePlan, conflicts:
             if CATALOGUE[ds]["columns"].get(col, {}).get("pii"):
                 sensitive_fee += 2.0
     row_tier_fee = 0.25 if selected_plan.estimated_rows_returned > 10 else 0.0
+    bulk_history_fee = 0.0
+    if "fx_history" in datasets:
+        # Historical/bulk data is priced by estimated returned rows, separate from live single-point lookup pricing.
+        bulk_history_fee = round(min(12.0, max(0.0, selected_plan.estimated_rows_returned * 0.003)), 2)
+    live_api_fee = 0.0
+    if any(src == "fx_live_api" for src in selected_plan.sources):
+        live_api_fee = 1.25 if selected_plan.api_calls else 0.50
     base_fee = 1.0
-    total = base_fee + column_price + source_premium + verification_fee + conflict_fee + sensitive_fee + row_tier_fee
+    total = base_fee + column_price + source_premium + verification_fee + conflict_fee + sensitive_fee + row_tier_fee + bulk_history_fee + live_api_fee
     return {
         "currency": "credits",
         "total_user_price": round(total, 2),
@@ -70,9 +77,11 @@ def calculate_price(query: ParsedQuery, selected_plan: CandidatePlan, conflicts:
         "conflict_resolution_fee": round(conflict_fee, 2),
         "sensitive_column_fee": round(sensitive_fee, 2),
         "row_tier_fee": row_tier_fee,
+        "bulk_history_fee": bulk_history_fee,
+        "live_api_or_cache_fee": live_api_fee,
         "column_components": column_components,
         "source_breakdown": source_breakdown,
         "internal_execution_cost_estimate": round(selected_plan.estimated_execution_cost, 4),
-        "pricing_note": "User price is query/data-value pricing; internal execution cost is kept separately for optimisation and reporting.",
+        "pricing_note": "User price is query/data-value pricing; internal execution cost is kept separately for optimisation and reporting. Live FX lookups and bulk FX history are priced differently.",
         "arbitrage_note": "Column price is capped by published view price when a view determines the requested query output.",
     }

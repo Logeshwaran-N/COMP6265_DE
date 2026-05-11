@@ -178,3 +178,20 @@ SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
 ```sql
 SELECT customer_email FROM orders WHERE order_id = 'O-1002'
 ```
+
+## Phase C1 FX expansion
+
+This version adds a finance-focused expansion without changing the overall deployment architecture.
+
+- `fx_rates` now has four source styles: low-cost CSV, official database snapshot, mock API feed, and a Frankfurter live FX connector.
+- `fx_history` is generated as a larger historical dataset for analytics, forecasting and bot/model-training style queries.
+- Live FX calls are cached in `backend/data/live_fx_cache.json` to reduce external calls and keep demonstrations reliable.
+- If the live API is unavailable, the connector falls back to cached or internal seed data and records the status in execution metrics.
+- The trust page groups sources by dataset so a marker can compare sources inside one category from left to right: CSV/file, DB/reference, API/live.
+
+Example queries:
+
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
+SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' LIMIT 100
+```

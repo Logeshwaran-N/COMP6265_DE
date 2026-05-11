@@ -150,3 +150,17 @@ Local admin:
 ```text
 admin@test.com / Admin@12345
 ```
+
+## Live FX API environment
+
+The live FX connector uses Frankfurter by default and does not require an API key.
+
+Optional backend environment variables:
+
+```env
+DATA_ECONOMY_LIVE_FX_API_ENABLED=true
+DATA_ECONOMY_LIVE_FX_API_BASE_URL=https://api.frankfurter.dev/v2
+DATA_ECONOMY_LIVE_FX_CACHE_TTL_SECONDS=3600
+```
+
+The backend can still run if the external API fails because it falls back to cached or internal seed data.

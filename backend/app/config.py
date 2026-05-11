@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     mock_api_base_url: str = Field(default="http://localhost:8001")
     api_timeout_seconds: float = Field(default=2.0, ge=0.1, le=60.0)
 
+    # Live FX provider / cache. Used only for latest single-point FX lookups.
+    live_fx_api_enabled: bool = Field(default=True)
+    live_fx_api_base_url: str = Field(default="https://api.frankfurter.dev/v2")
+    live_fx_cache_ttl_seconds: int = Field(default=3600, ge=60, le=86_400)
+    live_fx_cache_path: Optional[Path] = None
+
     # Paths
     data_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parents[1] / "data")
     db_path: Optional[Path] = None
@@ -37,6 +43,8 @@ class Settings(BaseSettings):
             self.db_path = self.data_dir / "warehouse.db"
         if self.audit_log_path is None:
             self.audit_log_path = self.data_dir / "audit_log.jsonl"
+        if self.live_fx_cache_path is None:
+            self.live_fx_cache_path = self.data_dir / "live_fx_cache.json"
 
 
 settings = Settings()

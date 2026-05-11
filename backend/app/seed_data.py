@@ -18,6 +18,9 @@ SHARED_API_DATA: Dict[str, List[Dict[str, Any]]] = {
         {"symbol": "EUR_INR", "spot_rate": 91.79, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
         {"symbol": "GBP_USD", "spot_rate": 1.30, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
         {"symbol": "EUR_GBP", "spot_rate": 0.84, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
+        {"symbol": "EUR_USD", "spot_rate": 1.09, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
+        {"symbol": "USD_GBP", "spot_rate": 0.78, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
+        {"symbol": "GBP_EUR", "spot_rate": 1.18, "precision": 4, "as_of": "2026-05-07T08:30:00Z"},
     ],
     "orders": [
         {"id": "O-1001", "area": "South East", "contact": "asha@example.com", "amount": 148.20, "demand": 0.82},
