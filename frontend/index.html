@@ -201,12 +201,13 @@
           if(isAdminUser()) renderAudit(audit);
         }catch(e){
           $('metrics').innerHTML='';
-          if(isAdminUser()) $('auditView').innerHTML='<div class="status bad">Could not load audit events.</div>';
+          // Do not overwrite Governance Audit here. Audit has its own refresh and error handling.
+          console.warn('Dashboard refresh failed', e);
         }
       }
       async function refreshAll(){await refreshMetricsOnly();}
       $('refreshBtn').addEventListener('click',refreshAll);
-      $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{renderAudit(await api('/api/audit?limit=50')); await refreshMetricsOnly();}catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
+      $('auditRefreshBtn').addEventListener('click',async()=>{ if(!isAdminUser())return; $('auditView').innerHTML='<div class="status">Refreshing audit events...</div>'; try{const auditRows=await api('/api/audit?limit=50'); renderAudit(auditRows); }catch(e){$('auditView').innerHTML=''; $('auditView').appendChild(el('div',{class:'status bad'},[e.message]));} });
 
       function renderCatalogue(data){const root=$('catalogueView'); root.innerHTML=''; const entries=Object.entries(data||{}); if(!entries.length){root.appendChild(el('div',{class:'status'},['No catalogue entries found.']));return;} const cards=el('div',{class:'cards'},entries.map(([name,d])=>el('div',{class:'card'},[el('strong',{},[name]),el('div',{class:'meta'},[d.description||'Virtual dataset']),el('div',{},Object.keys(d.sources||{}).map(s=>el('span',{class:'tag'},[s]))),el('div',{class:'meta',style:'margin-top:8px'},[`Columns: ${(d.columns||[]).join(', ')}`])]))); root.appendChild(cards);}
       function renderAudit(rows){const root=$('auditView'); root.innerHTML=''; if(!rows?.length){root.appendChild(el('div',{class:'status'},['No audit events yet. Run a query to create an audit record.']));return;} const clean=rows.slice(0,12).map(a=>({time:(a.timestamp||'').replace('T',' ').slice(0,19),user:a.actor_email||a.actor_username||a.actor_sub||'',role:a.effective_role||a.actor_role||'',purpose:a.purpose||'',decision:a.allowed===false?'denied':'allowed',source:(a.selected_plan?.sources||[]).join(', '),price:a.price??'',query:(a.raw_query||'').slice(0,90)})); root.appendChild(table(clean,980)); root.appendChild(el('details',{},[el('summary',{},['Audit details']),el('pre',{},[JSON.stringify(rows.slice(0,12),null,2)])]));}
