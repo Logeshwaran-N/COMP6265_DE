@@ -1,343 +1,179 @@
-# Trust-Aware Federated Data Economy Platform
+# Intent-Aware Federated Data Economy Platform
 
-A master’s coursework prototype for COMP6265 Data Economy.
+COMP6265 prototype for querying distributed data products through one platform. The system recommends the best source tier based on query intent, user preference, trust, freshness, cost, policy and pricing.
 
-This is not a normal CRUD app. It is a **technical data-economy component** that combines:
+## What the system demonstrates
 
-- federated/distributed querying over CSV, SQLite and API sources;
-- metadata catalogue and schema mapping;
-- ODRL-inspired policy and governance enforcement;
-- source trust and PageRank-style reputation;
-- cost-aware query optimisation inspired by relational optimisers;
-- trust-aware conflict detection and resolution;
-- query pricing with an arbitrage guard;
-- audit logging as a policy duty;
-- a React UI to make the algorithm visible.
+- Federated querying over CSV, SQLite and API-style sources
+- Intent-aware source selection for current point values, historical bulk data, analytics slices and record lookups
+- Trust-tiered FX provider choice: daily DB, standard live API and premium trading feed
+- Fruit source choice between low-cost daily DB, trusted current market API and CSV data lake
+- CSV/data-lake preference for large historical queries
+- Verified mode that checks multiple sources, detects conflicts and resolves by trust, authority and freshness
+- Query pricing separated from internal execution cost
+- ODRL-inspired role, purpose and column policy checks
+- Audit logging
+- Admin-managed users with local auth or Cognito auth
 
-## Why this project is stronger than a simple query engine
-
-A simple query engine only fetches data. This prototype also answers questions that matter in a data economy:
-
-1. **Can this user access this data for this purpose?**
-2. **Which source should be used if the same data appears in many places?**
-3. **What happens if sources disagree?**
-4. **How much does the query cost internally?**
-5. **How much should the user-facing query answer be priced?**
-6. **Can the system explain the decision using provenance and audit logs?**
-
-## Architecture
+## Current AWS target
 
 ```text
-React UI
-  ↓
-FastAPI Gateway
-  ↓
-SQL-like Parser
-  ↓
-Policy Engine
-  ↓
-Federated Cost Optimiser
-  ↓
-CSV / SQLite / Mock External API Connectors
-  ↓
-Conflict Resolver + Trust Engine
-  ↓
-Query Pricing Engine
-  ↓
-Audit Log
+Frontend: AWS Amplify
+Auth: Amazon Cognito
+Backend: EC2 Docker service
+HTTPS API: API Gateway proxy to EC2 backend
+Data: packaged CSV + SQLite + mock API service
 ```
 
-## Core algorithm
+The project avoids live third-party APIs so the coursework demo is stable and repeatable.
 
-### 1. Virtual catalogue and schema mapping
+## Local login
 
-Users query virtual datasets such as:
+There is no public signup page. Users are created by the administrator.
+
+```text
+admin@test.com / Admin@12345
+```
+
+Admin users can query data, add members, search users, reset passwords and remove members. The current admin account cannot remove itself.
+
+## Run locally with Docker
+
+```bash
+docker compose up --build -d
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+Backend health:
+
+```text
+http://localhost:8000/api/health
+```
+
+## Cognito mode
+
+Backend environment variables:
+
+```text
+REQUIRE_AUTH=true
+AUTH_PROVIDER=cognito
+COGNITO_REGION=eu-west-2
+COGNITO_USER_POOL_ID=YOUR_USER_POOL_ID
+COGNITO_APP_CLIENT_ID=YOUR_APP_CLIENT_ID
+COGNITO_ADMIN_GROUP=admin
+COGNITO_SUPPRESS_INVITE=true
+MOCK_API_BASE_URL=http://mock-api:8001
+FRONTEND_ORIGINS=https://YOUR-AMPLIFY-URL
+```
+
+Frontend environment variable in Amplify:
+
+```text
+VITE_API_BASE_URL=https://YOUR-API-GATEWAY-URL
+```
+
+## Data source tiers
+
+```text
+Fruit CSV Data Lake        low-cost archive / bulk scan
+Fruit Daily Warehouse DB   daily cleaned fruit price reference
+Trusted Fruit Market API   fresher current fruit market price
+Manual FX CSV Archive      low-trust/stale current FX file
+Official Daily FX DB       governed daily FX reference
+Standard FX Live API       normal live-ish FX provider
+Premium FX Trading Feed    high-trust premium FX provider
+FX History CSV Data Lake   low-cost historical FX bulk access
+Official FX History DB     cleaner high-trust historical reference
+Enterprise Orders DB       governed internal order analytics
+Retail Analytics API       external analytics enrichment
+Supplier Master DB         controlled supplier reference data
+```
+
+Seed data size in this version:
+
+```text
+fruits:      1,000 records in CSV, SQLite and mock API
+orders:      5,000 records in SQLite and mock API
+suppliers:   120 reference records
+fx_rates:    12 current currency pairs
+fx_history:  21,912 historical observations
+```
+
+## Query modes and preferences
+
+Standard mode executes one recommended source. Verification mode executes all compatible sources and can show source comparison details.
+
+```text
+balanced      -> normal choice for the query intent
+cheapest      -> cost-effective source that still fits the intent
+trust_first   -> premium or highest-authority provider
+privacy_first -> controlled DB/warehouse source where possible
+```
+
+The UI keeps `WITH VERIFICATION` and the verification checkbox in sync. Source comparison details are shown only when selected.
+
+## Important queries
+
+Normal live FX rate:
+
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'
+```
+
+Premium live FX rate:
+
+```sql
+SELECT rate FROM fx_rates WHERE pair = 'GBP_INR'
+```
+
+Run the premium example with the `High trust / premium` preference.
+
+Verified GBP/INR comparison:
 
 ```sql
 SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
 ```
 
-The physical source schemas are different:
-
-| Virtual column | CSV | SQLite | API |
-|---|---|---|---|
-| pair | pair_code | currency_pair | symbol |
-| rate | value | official_rate | spot_rate |
-
-The schema mapping layer hides this heterogeneity.
-
-### 2. Governance / policy engine
-
-The policy engine checks role, purpose, requested columns and sensitivity.
-
-Example:
+Low-cost historical FX query:
 
 ```sql
-SELECT customer_email FROM orders WHERE order_id = 'O-1002'
+SELECT date, pair, rate FROM fx_history WHERE pair = 'GBP_INR' ORDER BY date DESC LIMIT 100
 ```
 
-For `researcher` / `research`, this is denied because `customer_email` is PII.
-
-### 3. Source trust and PageRank reputation
-
-Each source has:
-
-- base trust;
-- authority level;
-- freshness;
-- conflict risk;
-- provider reputation from an endorsement graph.
-
-The trust formula is:
-
-```text
-computed_trust = 0.42*base_trust
-               + 0.28*authority_level
-               + 0.18*provider_PageRank
-               + 0.12*freshness_score
-```
-
-PageRank complexity:
-
-```text
-O(I * (V + E))
-```
-
-where `I` is iterations, `V` is providers and `E` is endorsement edges.
-
-### 4. Cost-aware federated optimiser
-
-The optimiser enumerates candidate plans:
-
-- single source plan;
-- verified multi-source plan;
-- simple two-way join plan;
-- join verified plan.
-
-It estimates:
-
-```text
-estimated_execution_cost = access_cost
-                          + rows_scanned * row_scan_cost
-                          + api_calls * api_call_cost
-                          + projection_penalty
-```
-
-Balanced score:
-
-```text
-score = cost + 0.004*latency + 0.25*api_calls
-      + 0.9*conflict_risk - 1.5*trust - 0.4*freshness
-```
-
-Lower score is better.
-
-Strategies:
-
-- `balanced`
-- `cheapest`
-- `trust_first`
-- `privacy_first`
-
-### 5. Trust-aware conflict resolution
-
-Verified mode queries all compatible sources and compares values by entity key.
-
-Example:
+Current fruit price:
 
 ```sql
-SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
+SELECT name, price_gbp FROM fruits WHERE name = 'apple'
 ```
 
-Possible source values:
-
-| Source | Value | Trust |
-|---|---:|---:|
-| CSV | 105.20 | low |
-| SQLite official DB | 108.40 | very high |
-| API | 108.43 | high |
-
-The resolver returns the highest trust/authority answer and shows alternatives.
-
-### 6. Query pricing
-
-The system separates:
-
-- **internal execution cost**: used by the optimiser;
-- **user-facing query price**: used for monetisation.
-
-Pricing includes:
-
-- base fee;
-- selected column price;
-- source premium;
-- verification fee;
-- conflict resolution fee;
-- sensitive-column fee.
-
-It includes a simple **arbitrage guard**: if a published view determines the requested columns, the column price is capped by that view price.
-
-## Demo queries
-
-### 1. Financial conflict / trust-aware resolution
-
-```sql
-SELECT rate FROM fx_rates WHERE pair = 'GBP_INR' WITH VERIFICATION
-```
-
-Recommended role/purpose:
-
-```text
-role = researcher
-purpose = research
-strategy = trust_first
-```
-
-### 2. Fruit price conflict
+Fruit verified conflict resolution:
 
 ```sql
 SELECT name, price_gbp FROM fruits WHERE name = 'apple' WITH VERIFICATION
 ```
 
-Shows CSV/DB/API disagreement and chooses the trusted source.
-
-### 3. Governance denial
+Retail-order analytics:
 
 ```sql
-SELECT customer_email FROM orders WHERE order_id = 'O-1002'
+SELECT order_id, customer_region, total_gbp FROM orders WHERE customer_region = 'London' LIMIT 50
 ```
 
-Run as:
-
-```text
-role = researcher
-purpose = research
-```
-
-It should be denied.
-
-Then run as:
-
-```text
-role = admin
-purpose = internal_audit
-```
-
-It should be allowed.
-
-### 4. Join plan
+PII policy denial:
 
 ```sql
-SELECT name, price_gbp, supplier_name FROM fruits JOIN suppliers ON supplier_id = supplier_id WHERE name = 'apple'
+SELECT customer_email FROM orders WHERE order_id = 'O-100002'
 ```
 
-This demonstrates join candidate enumeration and left-deep style plan selection.
-
-## Run locally with Docker
-
-From the project root:
+## Tests
 
 ```bash
-docker-compose up --build
-```
-
-or, on newer Docker:
-
-```bash
-docker compose up --build
-```
-
-Open:
-
-- Frontend: <http://localhost:5173>
-- Backend API: <http://localhost:8000/docs>
-- Mock API: <http://localhost:8001/docs>
-
-## Run without Docker
-
-Backend:
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Mock API in another terminal:
-
-```bash
-cd mock_api
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload --host 0.0.0.0 --port 8001
-```
-
-Frontend:
-
-```bash
-cd frontend
-npm install
-VITE_API_BASE_URL=http://localhost:8000 npm run dev
-```
-
-## AWS deployment recommendation
-
-For coursework demo, use **one EC2 instance with Docker Compose**.
-
-Security group inbound rules:
-
-- `22` for SSH;
-- `5173` for frontend;
-- `8000` for backend API;
-- `8001` optional, only if you want to expose the mock provider API.
-
-On Ubuntu EC2:
-
-```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin unzip
-sudo usermod -aG docker $USER
-newgrp docker
-unzip data_economy_final.zip
-cd data_economy_final
-docker compose up -d --build
-```
-
-Then open:
-
-```text
-http://<EC2_PUBLIC_IP>:5173
-```
-
-## Coursework report angle
-
-Recommended title:
-
-**Trust-Aware Federated Query Platform for Multi-Source Data Sharing**
-
-Main contribution:
-
-> We implemented a policy-aware federated data access component that integrates heterogeneous sources, estimates query execution cost, chooses plans using trust/cost trade-offs, resolves conflicting values through source reputation, prices query answers, and records auditable governance decisions.
-
-## AI tools disclosure placeholder
-
-Add this to your final report and edit honestly:
-
-> We used ChatGPT as an AI-assisted development aid for design discussion, boilerplate generation, debugging and refactoring suggestions. The team reviewed, tested and modified the generated code. The main affected areas were project scaffolding, frontend layout, backend module structure and explanatory documentation. Final design decisions and validation were performed by the team.
-
-
-## V4 frontend fix
-The query console keeps the query result visible after execution. Earlier versions refreshed all platform metadata immediately after a query, which temporarily unmounted the React page and cleared the local result state. Use the manual Refresh button to reload audit/catalogue metadata after reviewing the result.
-
-## Windows host to Linux VM via SSH tunnel
-Forward both frontend and backend ports:
-
-```bash
-ssh -L 5173:127.0.0.1:5173 -L 8000:127.0.0.1:8000 logesh@<vm-ip>
+PYTHONPATH=backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest backend/tests -q
 ```
 
 Open http://localhost:5173 in Windows and check http://localhost:8000/api/health.
-#Logesh policy check as owner of repo
+

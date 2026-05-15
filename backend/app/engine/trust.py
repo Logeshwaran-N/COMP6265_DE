@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+import time
 from math import exp
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from ..config import settings
 from ..catalogue import PROVIDER_ENDORSEMENTS, list_sources
 
 
-def pagerank(graph: Dict[str, List[str]], damping: float = 0.85, iterations: int = 30, tolerance: float = 1e-8) -> Dict[str, float]:
+def pagerank(
+    graph: Dict[str, List[str]],
+    damping: float = settings.pagerank_damping,
+    iterations: int = settings.pagerank_iterations,
+    tolerance: float = settings.pagerank_tolerance,
+) -> Dict[str, float]:
     nodes = sorted(set(graph.keys()) | {dst for out in graph.values() for dst in out})
     n = len(nodes)
     if n == 0:
@@ -30,7 +38,6 @@ def pagerank(graph: Dict[str, List[str]], damping: float = 0.85, iterations: int
 
 
 def freshness_score(days: float) -> float:
-    # Smooth decay: same-day ~= 1, 7 days ~= .5, stale weeks ~= low.
     return round(exp(-max(days, 0) / 10.0), 4)
 
 
@@ -47,9 +54,12 @@ def compute_source_trust() -> Dict[str, Dict[str, Any]]:
         computed = (0.42 * base) + (0.28 * authority) + (0.18 * pr_score) + (0.12 * fresh)
         out[src["source_name"]] = {
             "source_name": src["source_name"],
+            "display_name": src.get("display_name", src["source_name"]),
             "dataset": src["dataset"],
+            "dataset_title": src.get("dataset_title", src["dataset"]),
             "provider": provider,
             "source_type": src["type"],
+            "source_role": src.get("source_role", src["type"]),
             "base_trust": round(base, 4),
             "authority_level": round(authority, 4),
             "pagerank_reputation": round(pr_score, 4),
@@ -57,10 +67,43 @@ def compute_source_trust() -> Dict[str, Dict[str, Any]]:
             "computed_trust": round(min(1.0, max(0.0, computed)), 4),
             "freshness_days": src.get("freshness_days", 0),
             "conflict_risk": src.get("conflict_risk", 0.5),
+            "row_count": src.get("row_count", 0),
+            "access_cost": src.get("access_cost", 0),
+            "row_scan_cost": src.get("row_scan_cost", 0),
+            "api_call_cost": src.get("api_call_cost", 0),
+            "latency_ms": src.get("latency_ms", 0),
+            "best_for": src.get("best_for", []),
+            "trade_off": src.get("trade_off", ""),
             "explanation": "computed_trust = 0.42*base + 0.28*authority + 0.18*provider_PageRank + 0.12*freshness",
         }
     return out
 
 
+class TrustCache:
+    def __init__(self, ttl_seconds: float) -> None:
+        self.ttl_seconds = ttl_seconds
+        self._value: Optional[Dict[str, Dict[str, Any]]] = None
+        self._computed_at: Optional[float] = None  # monotonic seconds
+
+    def get(self) -> Dict[str, Dict[str, Any]]:
+        now = time.monotonic()
+        if self._value is None or self._computed_at is None or (now - self._computed_at) > self.ttl_seconds:
+            self._value = compute_source_trust()
+            self._computed_at = now
+        return self._value
+
+    def invalidate(self) -> None:
+        self._value = None
+        self._computed_at = None
+
+    def age_seconds(self) -> Optional[float]:
+        if self._computed_at is None:
+            return None
+        return max(0.0, time.monotonic() - self._computed_at)
+
+
+trust_cache = TrustCache(ttl_seconds=settings.trust_cache_ttl_seconds)
+
+
 def trust_for_source(source_name: str) -> float:
-    return compute_source_trust().get(source_name, {}).get("computed_trust", 0.0)
+    return trust_cache.get().get(source_name, {}).get("computed_trust", 0.0)

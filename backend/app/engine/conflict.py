@@ -18,6 +18,23 @@ def _source_score(source_name: str) -> float:
     return (0.75 * t.get("computed_trust", 0)) + (0.25 * t.get("authority_level", 0))
 
 
+def _numeric_variation(values: List[float]) -> Dict[str, Any]:
+    if len(values) < 2:
+        return {"numeric_stddev": None, "percent_difference": None, "variation_type": "single_value"}
+    minimum = min(values)
+    maximum = max(values)
+    mean = sum(values) / len(values)
+    if mean == 0:
+        percent = 0.0 if maximum == minimum else 1.0
+    else:
+        percent = abs(maximum - minimum) / abs(mean)
+    return {
+        "numeric_stddev": round(pstdev(values), 4),
+        "percent_difference": round(percent * 100, 2),
+        "variation_type": "minor_variation" if percent <= 0.05 else "conflict",
+    }
+
+
 def resolve_conflicts(dataset_name: str, rows: List[Dict[str, Any]], selected_cols: List[str], show_all: bool = True) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     if not rows:
         return [], []
@@ -27,7 +44,7 @@ def resolve_conflicts(dataset_name: str, rows: List[Dict[str, Any]], selected_co
         groups[row.get(entity_key)].append(row)
 
     resolved_rows: List[Dict[str, Any]] = []
-    conflicts: List[Dict[str, Any]] = []
+    source_comparisons: List[Dict[str, Any]] = []
     output_cols = [c for c in selected_cols if c != "*"] or [c for c in CATALOGUE[dataset_name]["columns"]]
     if entity_key not in output_cols:
         output_cols = [entity_key] + output_cols
@@ -55,22 +72,30 @@ def resolve_conflicts(dataset_name: str, rows: List[Dict[str, Any]], selected_co
                         numeric_vals.append(float(c.get(col)))
                     except Exception:
                         pass
-                conflicts.append({
+                variation = _numeric_variation(numeric_vals) if len(numeric_vals) > 1 else {
+                    "numeric_stddev": None,
+                    "percent_difference": None,
+                    "variation_type": "conflict",
+                }
+                label = "Minor source variation" if variation["variation_type"] == "minor_variation" else "Conflict detected"
+                source_comparisons.append({
                     "entity_key": entity_key,
                     "entity_value": key,
                     "column": col,
                     "chosen_value": best.get(col),
                     "chosen_source": best.get("_source"),
                     "reason": "highest combined trust and authority score",
-                    "numeric_stddev": round(pstdev(numeric_vals), 4) if len(numeric_vals) > 1 else None,
+                    "label": label,
+                    **variation,
                     "alternatives": [
                         {
                             "source": c.get("_source"),
                             "provider": c.get("_provider"),
                             "value": c.get(col),
                             "source_score": round(_source_score(c.get("_source", "")), 4),
+                            "selected": c.get("_source") == best.get("_source"),
                         }
                         for c in candidates
                     ] if show_all else [],
                 })
-    return resolved_rows, conflicts
+    return resolved_rows, source_comparisons

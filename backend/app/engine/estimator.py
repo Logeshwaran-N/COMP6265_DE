@@ -2,24 +2,30 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 from ..catalogue import CATALOGUE
+from typing import Optional
+
 from ..models import ParsedPredicate, ParsedQuery, SourcePlanEstimate
-from .trust import compute_source_trust, freshness_score
+from .trust import freshness_score, trust_cache
 
 
-def _selectivity(dataset_name: str, predicate: ParsedPredicate | None) -> float:
+def _selectivity(dataset_name: str, predicate: Optional[ParsedPredicate]) -> float:
     if predicate is None:
         return 1.0
     dataset = CATALOGUE[dataset_name]
     col_meta = dataset["columns"].get(predicate.left)
     if not col_meta:
-        return 1.0
+        return 0.5
     distinct = max(int(col_meta.get("distinct", 10)), 1)
+    col_type = col_meta.get("type", "string")
     if predicate.op == "=":
-        return max(1.0 / distinct, 0.03)
+        sel = 1.0 / distinct
+        if distinct < 5:
+            sel = min(sel * 1.5, 1.0)
+        return sel
     if predicate.op in (">", "<", ">=", "<="):
-        return 0.33
+        return 0.25 if col_type == "number" else 0.33
     if predicate.op == "!=":
-        return 0.85
+        return (distinct - 1) / distinct if distinct > 1 else 1.0
     return 1.0
 
 
@@ -40,11 +46,19 @@ def estimate_source(dataset_name: str, source_name: str, query: ParsedQuery, sel
     api_calls = 1 if source["type"] == "api" else 0
     latency = float(source["latency_ms"]) + (rows_scanned * 0.35) + (api_calls * 15)
     access_cost = float(source["access_cost"])
-    row_cost = rows_scanned * float(source["row_scan_cost"])
+    base_row_cost = rows_scanned * float(source["row_scan_cost"])
+    # Monetary execution cost and latency are separated deliberately.
+    # File/CSV sources can be slow because they scan rows in Python, but the access tier is cheap.
+    if source["type"] == "csv":
+        row_cost = base_row_cost * 0.10
+    elif source["type"] == "api":
+        row_cost = base_row_cost
+    else:
+        row_cost = base_row_cost
     api_cost = api_calls * float(source["api_call_cost"])
     projection_penalty = max(0, len(selected_cols) - 1) * 0.03
     exec_cost = access_cost + row_cost + api_cost + projection_penalty
-    trust = compute_source_trust().get(source_name, {}).get("computed_trust", source.get("base_trust", 0.5))
+    trust = trust_cache.get().get(source_name, {}).get("computed_trust", source.get("base_trust", 0.5))
     fresh = freshness_score(source.get("freshness_days", 30))
     return SourcePlanEstimate(
         source_name=source_name,

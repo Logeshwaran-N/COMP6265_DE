@@ -1,17 +1,49 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+class RoleEnum(str, Enum):
+    guest = "guest"
+    analyst = "analyst"
+    researcher = "researcher"
+    data_steward = "data_steward"
+    admin = "admin"
+
+
+class PurposeEnum(str, Enum):
+    research = "research"
+    commercial = "commercial"
+    planning = "planning"
+    internal_audit = "internal_audit"
+
+
+class StrategyEnum(str, Enum):
+    balanced = "balanced"
+    cheapest = "cheapest"
+    trust_first = "trust_first"
+    privacy_first = "privacy_first"
 
 
 class QueryRequest(BaseModel):
-    query: str = Field(..., description="SQL-like query over a virtual dataset")
-    role: str = Field("researcher", description="guest, analyst, researcher, data_steward, admin")
-    purpose: str = Field("research", description="research, commercial, planning, internal_audit")
-    strategy: str = Field("balanced", description="balanced, cheapest, trust_first, privacy_first")
+    query: str = Field(..., min_length=5, max_length=1000, description="SQL-like query over a virtual dataset")
+    role: RoleEnum = Field(RoleEnum.researcher, description="User role")
+    purpose: PurposeEnum = Field(PurposeEnum.research, description="Query purpose")
+    strategy: StrategyEnum = Field(StrategyEnum.balanced, description="Optimisation strategy")
     verification: bool = Field(False, description="Force multi-source verification")
-    show_all_conflicts: bool = Field(True, description="Return conflict alternatives for demo transparency")
+    show_all_conflicts: bool = Field(False, description="Return provenance and conflict details when verification is requested")
+
+    @field_validator("query")
+    @classmethod
+    def query_must_be_select(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("Query must be a non-empty string")
+        if not v.strip().upper().startswith("SELECT"):
+            raise ValueError("Only SELECT queries are supported")
+        return v
 
 
 class QueryResponse(BaseModel):
@@ -25,6 +57,7 @@ class QueryResponse(BaseModel):
     conflicts: List[Dict[str, Any]] = Field(default_factory=list)
     pricing: Dict[str, Any] = Field(default_factory=dict)
     execution_metrics: Dict[str, Any] = Field(default_factory=dict)
+    recommendation: Dict[str, Any] = Field(default_factory=dict)
     audit_id: Optional[str] = None
 
 
@@ -47,6 +80,8 @@ class ParsedQuery:
     join_right: Optional[str] = None
     verification_hint: bool = False
     limit: Optional[int] = None
+    order_by: Optional[str] = None
+    order_dir: str = "asc"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -59,6 +94,8 @@ class ParsedQuery:
             "join_right": self.join_right,
             "verification_hint": self.verification_hint,
             "limit": self.limit,
+            "order_by": self.order_by,
+            "order_dir": self.order_dir,
         }
 
 
@@ -98,6 +135,9 @@ class CandidatePlan:
     complexity_class: str
     explanation: str
     warnings: List[str] = field(default_factory=list)
+    query_intent: str = "exploratory"
+    selection_reason: str = ""
+    source_roles: Dict[str, str] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -119,4 +159,42 @@ class CandidatePlan:
             "complexity_class": self.complexity_class,
             "explanation": self.explanation,
             "warnings": self.warnings,
+            "query_intent": self.query_intent,
+            "selection_reason": self.selection_reason,
+            "source_roles": self.source_roles,
         }
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    password: str = Field(..., min_length=1, max_length=256)
+
+
+class NewPasswordRequest(BaseModel):
+    session: str = Field(..., min_length=10)
+    new_password: str = Field(..., min_length=6, max_length=256)
+    email: Optional[str] = Field(default=None, max_length=320)
+
+
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+
+
+class ConfirmForgotPasswordRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    confirmation_code: str = Field(..., min_length=3, max_length=256)
+    new_password: str = Field(..., min_length=6, max_length=256)
+
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str = Field(..., min_length=1, max_length=256)
+    new_password: str = Field(..., min_length=6, max_length=256)
+
+
+class AdminCreateUserRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    temp_password: str = Field(..., min_length=6, max_length=256)
+    role: RoleEnum = Field(RoleEnum.researcher)
+    name: Optional[str] = Field(default=None, max_length=120)
