@@ -174,3 +174,6 @@ SELECT customer_email FROM orders WHERE order_id = 'O-100002'
 ```bash
 PYTHONPATH=backend PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest backend/tests -q
 ```
+
+Open http://localhost:5173 in Windows and check http://localhost:8000/api/health.
+
